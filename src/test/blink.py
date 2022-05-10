@@ -7,5 +7,5 @@ p = Pin(0, Pin.OUT)
 led_pin.value(1)
 
 while True:
-    p.toggle()
-    utime.sleep(5)
+    led_pin.toggle()
+    utime.sleep(1)
