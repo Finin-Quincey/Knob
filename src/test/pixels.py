@@ -6,6 +6,8 @@ from machine import Pin
 PIXEL_COUNT = 24
 PIXEL_OFFSET = 8
 
+PIXEL_DATA_PIN = 28
+
 def to_pixel_index(i):
     return (PIXEL_OFFSET - i) % PIXEL_COUNT
 
@@ -26,7 +28,7 @@ led_pin = Pin(25, Pin.OUT)
 
 led_pin.high()
 
-ring = Neopixel(24, 0, 0, "GRB")
+ring = Neopixel(24, 0, PIXEL_DATA_PIN, "GRB")
 
 # for i in range(PIXEL_COUNT):
 #     ring.set_pixel(i, ring.colorHSV(int(i/PIXEL_COUNT * 65535), 255, 20))
