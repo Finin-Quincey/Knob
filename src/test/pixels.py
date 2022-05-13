@@ -4,7 +4,7 @@ from neopixel import Neopixel
 from machine import Pin
 
 PIXEL_COUNT = 24
-PIXEL_OFFSET = 8
+PIXEL_OFFSET = 20
 
 PIXEL_DATA_PIN = 28
 
