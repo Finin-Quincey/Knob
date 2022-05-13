@@ -71,27 +71,35 @@ ring = Neopixel(PIXEL_COUNT, 0, PIXEL_DATA_PIN, "GRB")
 encoder_a_pin = Pin(ENCODER_A_PIN, Pin.IN, Pin.PULL_UP)
 encoder_b_pin = Pin(ENCODER_B_PIN, Pin.IN, Pin.PULL_UP)
 encoder_last_pulse_pin = encoder_a_pin
+encoder_last_pulse_val = 0
 
 encoder_sw_pin = Pin(ENCODER_SW_PIN, Pin.IN, Pin.PULL_UP)
 
 def handle_encoder_pulse(pin):
 
+    pin_val = pin.value() # Capture value of the tiggered pin as soon as possible in case it changes
+
     global encoder_count
     global encoder_a_pin
     global encoder_b_pin
     global encoder_last_pulse_pin
+    global encoder_last_pulse_val
     #global encoder_cooldown
+
+    is_b_pin = pin is encoder_b_pin
+    other_pin_val = encoder_a_pin.value() if is_b_pin else encoder_b_pin.value()
 
     # Basic debouncing
     # ignore = encoder_cooldown > 0
     # if ignore: return
     # encoder_cooldown = 1
 
-    if encoder_last_pulse_pin is pin: return # Ignore if the same pin was pulsed twice
+    if encoder_last_pulse_pin is pin and encoder_last_pulse_val == pin_val: return # Ignore if the same pin was pulsed twice
 
     encoder_last_pulse_pin = pin # Update last pulsed pin
+    encoder_last_pulse_val = pin_val
 
-    delta = 1 if (pin is encoder_b_pin) == (encoder_a_pin.value() == encoder_b_pin.value()) else -1
+    delta = 1 if is_b_pin == (pin_val == other_pin_val) else -1
     encoder_count = (encoder_count + delta) % ENCODER_COUNTS_PER_REV
     print(encoder_count)
 
