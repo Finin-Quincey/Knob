@@ -1,6 +1,7 @@
 import utime
 import math
 from neopixel import Neopixel
+import machine
 from machine import Pin
 import micropython
 
@@ -32,6 +33,15 @@ def to_pixel_index(i):
 def to_pos_index(i):
     return (-i - PIXEL_OFFSET) % PIXEL_COUNT
 
+def update_ring(ring):
+    """
+    Wrapper for ring.show() that disables interrupts while it executes
+    """
+    # Sending data to the NeoPixels is timing critical, therefore it MUST NOT be interrupted or the LED drivers
+    # will interpret the incomplete data, resulting in the wrong pixels turning on
+    state = machine.disable_irq()
+    ring.show()
+    machine.enable_irq(state)
 
 def show_fraction(ring, fraction, rgb):
     if fraction < 0 or fraction > 1: raise ValueError("Fraction must be between 0 and 1 (inclusive)")
@@ -44,7 +54,12 @@ def show_fraction(ring, fraction, rgb):
         # ring.set_pixel(to_pixel_index(i), [int(c * v) for c in rgb])
         ring.set_pixel(to_pixel_index(i), rgb)
     ring.set_pixel(to_pixel_index(on_pixels), [int(c * remainder) for c in rgb])
-    ring.show()
+
+    # for i in range(PIXEL_COUNT):
+    #     brightness = 1 if to_pos_index(i) == on_pixels else (1 if to_pos_index(i) < on_pixels else 0)
+    #     ring.set_pixel(i, [int(c * brightness) for c in rgb])
+
+    update_ring(ring)
 
 ### Pin Setup ###
 
@@ -60,17 +75,6 @@ encoder_last_pulse_pin = encoder_a_pin
 encoder_sw_pin = Pin(ENCODER_SW_PIN, Pin.IN, Pin.PULL_UP)
 
 def handle_encoder_pulse(pin):
-
-    # Something in here is causing problems!
-    # I assume it's a race condition or similar that is causing the momentary glitching
-    # Potentially useful observations:
-    # - When pixel index is not offset or negated, glitching doesn't seem to happen in the off region
-    # - The glitching always seems to have the correct number of pixels lit, but in the wrong place
-    # - No wrong numbers show up in any printouts I've done
-    # - No glitching occurs when the pixels are run without the encoder, even when all encoder pins
-    #   are set to pullup (i.e. it's not a hardware issue like interference or shorting)
-    # - However, it DOES occur when the interrupts are defined but the pixels are doing their own thing
-    #   > I think this means we have a problem with the ISRs taking too long... somehow
 
     global encoder_count
     global encoder_a_pin
@@ -93,9 +97,6 @@ def handle_encoder_pulse(pin):
 
 encoder_a_pin.irq(handle_encoder_pulse, Pin.IRQ_RISING | Pin.IRQ_FALLING)
 encoder_b_pin.irq(handle_encoder_pulse, Pin.IRQ_RISING | Pin.IRQ_FALLING)
-
-# for i in range(24):
-#     print(f"{i} -> {to_pixel_index(i)}")
 
 prev_encoder_count = 0
 
