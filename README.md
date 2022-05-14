@@ -21,7 +21,7 @@ A USB volume knob powered by Raspberry Pi Pico. Currently WIP!
 
 #### Host
 - Python 3.10.4
-- ... libraries ...
+- pyserial 3.5
 
 ## 🎵 Links
 - [Interactive Pico Pinout](https://pico.pinout.xyz/)
