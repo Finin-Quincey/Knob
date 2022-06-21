@@ -37,4 +37,4 @@ ring = Neopixel(24, 0, PIXEL_DATA_PIN, "GRB")
 while True:
     f = (math.sin((utime.ticks_ms() / 2000)) + 1) / 2
     show_fraction(ring, f, ring.colorHSV(int((260 - f * 180) / 360 * 65535), 150, 10))
-    utime.sleep_ms(20)
+    #utime.sleep_ms(20)

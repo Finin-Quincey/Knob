@@ -5,7 +5,7 @@ BAUD_RATE = 115200
 COM_PORT = "COM8"
 
 # Timeout is in seconds
-ser = serial.Serial(COM_PORT, BAUD_RATE, timeout = 5)#, parity = serial.PARITY_EVEN, rtscts = 1)
+ser = serial.Serial(COM_PORT, BAUD_RATE, timeout = 5, parity = serial.PARITY_EVEN, rtscts = 1)
 
 msg = b'Ping'
 n = ser.write(msg)
