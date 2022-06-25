@@ -6,7 +6,7 @@ from neopixel import Neopixel
 ### Constants ###
 
 MAX_PIOS = 4 # Total number of PIOs (state machines) onboard the Pico
-MAX_BRIGHTNESS = 20
+MAX_BRIGHTNESS = 15
 
 # Lookup table for gamma-corrected 8-bit values
 # https://learn.adafruit.com/led-tricks-gamma-correction/the-quick-fix
