@@ -5,7 +5,6 @@ Module that handles serial communication on the device end. Deals with setting u
 messages.
 """
 
-from typing import Callable, TypeVar
 from machine import UART
 import message_protocol
 
@@ -13,12 +12,11 @@ import message_protocol
 uart = UART(0, message_protocol.BAUD_RATE) # TODO: Potentially move this to init
 
 MESSAGE_HANDLERS = {} # Dictionary mapping message types to handler functions
-T = TypeVar("T", bound = message_protocol.Message)
 
 
 ### Functions ###
 
-def register_handler(message_type: type[T], handler: Callable[[T], None]):
+def register_handler(message_type: type, handler):
     """
     Registers the given handler function for the given message type.
     This will replace any existing handler for that message type.
