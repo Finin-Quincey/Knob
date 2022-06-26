@@ -10,8 +10,6 @@ messages differs between the device (uart) and host (pyserial), this is done out
 common, it guarantees that the device and host interpret messages the same way.
 """
 
-from typing import Type
-
 ### Constants ###
 BAUD_RATE = 115200
 COM_PORT = "COM8" # TODO: Make this not hardcoded
