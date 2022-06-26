@@ -6,7 +6,7 @@ how to convert that data to and from bytes (encoding and decoding).
 
 This class is common, meaning it is part of both the host Python program and the device MicroPython program. As such, it only
 uses language elements that are common to both Python and MicroPython. Because the actual method of sending and receiving
-messages differs between the device (stdin/out) and host (pyserial), this is done outside of this module. By making this class
+messages differs between the device (uart) and host (pyserial), this is done outside of this module. By making this class
 common, it guarantees that the device and host interpret messages the same way.
 """
 
@@ -33,18 +33,18 @@ MESSAGE_REGISTRY = [] # List of message types, index is the message ID
 
 class Message:
 
-    def __init__(self):
+    def __init__(self, size = 0):
         """
-        Creates a new message. Subclasses should override this if they need to send additional data. This
-        must be done using optional arguments only, so that the decoder can construct a 'blank' instance before
-        populating it via from_bytes().
+        Creates a new message. Subclasses should override this if they need to send additional data, calling this
+        superconstructor to pass in the message size (in bytes, excluding the ID byte). This must be done using
+        optional arguments only, so that the decoder can construct a 'blank' instance before populating it via from_bytes().
         """
-        pass
+        self.size = size
 
-    def encode(self):
+    def encode(self) -> bytes:
         """
         Encodes this message as a sequence of bytes and returns the result.
-        Subclasses should not override this method! Override get_bytes() instead.
+        Subclasses should not override this method! Override from_bytes() instead.
         (It's done this way so that the empty array can be created centrally, and so we can ensure that the
         ID always comes first no matter where super() is called, even if it is never called)
         """
@@ -52,11 +52,23 @@ class Message:
         data.insert(0, MESSAGE_REGISTRY.index(type(self)))
         return bytes(data)
 
+    def decode(self, data_bytes: bytes):
+        """
+        Decodes this message from the given sequence of bytes.
+        Subclasses should not override this method! Override to_bytes() instead.
+        """
+        # A bit overkill to have a separate wrapper method here but I want the conversion to list done inside the class
+        # for consistency, plus we may want to do other stuff in this method later
+        self.from_bytes(list(data_bytes))
+
+    # Internal methods
+
     def to_bytes(self, data: list) -> list:
         """
         Called from encode() to populate the message with bytes of data. Subclasses can override this and
         populate it with whatever data is required. If no additional data (other than the message ID) is
-        needed, this method need not be overridden.
+        needed, this method need not be overridden. Ensure data is processed in the same order as from_bytes()
+        (this includes calls to super())
         """
         return data
 
@@ -64,7 +76,8 @@ class Message:
         """
         Called from decode() to read this message's values from the given list of bytes. Subclasses can
         override this and do the reverse of whatever data was populated in to_bytes(). The recommended way
-        to do this is using data.pop(0) to avoid needing to use indices.
+        to do this is using data.pop(0) to avoid needing to use indices. Ensure data is processed in the same
+        order as from_bytes() (this includes calls to super())
         """
         pass
 
@@ -91,6 +104,7 @@ class VolumeMessage(Message):
     """
 
     def __init__(self, volume = 0):
+        super().__init__(size = 1)
         self.volume = volume
 
     def to_bytes(self, data: list) -> list:
@@ -123,6 +137,7 @@ class PlaybackStatusMessage(Message):
     """
 
     def __init__(self, playing = False):
+        super().__init__(size = 1)
         self.playing = playing
 
     def to_bytes(self, data: list) -> list:
@@ -144,6 +159,7 @@ class SkipMessage(Message):
     """
 
     def __init__(self, forward = False):
+        super().__init__(size = 1)
         self.forward = forward
 
     def to_bytes(self, data: list) -> list:
@@ -163,14 +179,23 @@ def register(message_class: Type):
     if not issubclass(message_class, Message): raise TypeError("Cannot register message type; must inherit from Message")
     MESSAGE_REGISTRY.append(message_class)
 
+# Two different approaches to determining when to stop reading:
+# 1. Send a newline char (\n) at the end of each message and use readline() - neat but inefficient
+#    + Simple to implement
+#    + No need to know the size of messages beforehand
+#    - Adds 1 byte to every single message
+# 2. Define the length of each message at compile-time, then look that up once message type has been determined and
+#    read the rest of the message based on that - messier but efficient
+#    + No additional bytes need to be sent
+#    - More complex to implement, requires some back-and-forth between serial managers and message_protocol
+# I've gone for option 2 for now, but a potential compromise is to supply a read function as an argument to decode()
 
-def decode(data_bytes: bytes) -> Message:
+def msg_from_id(id_byte: bytes) -> Message:
     """
-    Decodes the given bytes and reconstructs and returns the original Message object for further processing.
+    Construct a blank message from its ID, ready to receive bytes of data.
     """
-    data = list(data_bytes)
-    msg = MESSAGE_REGISTRY[data.pop(0)]() # Empty brackets because we're calling the constructor here
-    msg.from_bytes(data)
+    id = int(id_byte[0])
+    msg = MESSAGE_REGISTRY[id]() # Empty brackets because we're calling the constructor here
     return msg
 
 
