@@ -172,12 +172,12 @@ class SkipMessage(Message):
 
 ### Functions ###
 
-def register(message_class: Type):
+def register(message_type: type[Message]):
     """
     Registers the given class as a message type. The class must inherit from Message.
     """
-    if not issubclass(message_class, Message): raise TypeError("Cannot register message type; must inherit from Message")
-    MESSAGE_REGISTRY.append(message_class)
+    #if not issubclass(message_class, Message): raise TypeError("Cannot register message type; must inherit from Message")
+    MESSAGE_REGISTRY.append(message_type)
 
 # Two different approaches to determining when to stop reading:
 # 1. Send a newline char (\n) at the end of each message and use readline() - neat but inefficient
