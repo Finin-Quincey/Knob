@@ -60,7 +60,24 @@ class LedRing:
     def set_colour(self, hsv):
         self._pixels.fill(self._apply_gamma(hsv), how_bright = MAX_BRIGHTNESS)
         self._refresh_pixels()
-        
+
+
+    def display_bytes(self, b: bytes):
+        """
+        Debug function that can display up to 3 bytes in binary around the led ring.
+        First byte is red, second byte is green, third is blue. Bytes are big-endian when read clockwise.
+        Zeros are displayed as dim colours rather than off to prevent ambiguity around where each byte starts and ends.
+        """
+        for n, val in enumerate(b):
+            for i in range(8):
+                pixel_index = n * 8 + i
+                if pixel_index >= self.led_count: break # Run out of pixels!
+                c = [0, 0, 0]
+                c[n] = 255 if (val >> i) & 0b00000001 else 10 # Make the zeros dim rather than completely off
+                self._pixels.set_pixel(pixel_index, c, MAX_BRIGHTNESS)
+
+        self._refresh_pixels()
+
 
     def set_effect(self, effect):
         self._pixels.clear()
