@@ -1,5 +1,4 @@
 import micropython
-import machine
 from machine import Pin
 
 micropython.alloc_emergency_exception_buf(100) # Recommended when using interrupts
@@ -54,3 +53,10 @@ class Encoder:
 
         delta = 1 if is_pin_b == (pin_val == other_pin_val) else -1
         self.count = (self.count + delta) % self.cpr
+
+
+    def is_switch_pressed(self):
+        """
+        Returns True if the switch is currently pressed down, False otherwise.
+        """
+        return self.pin_sw.value() > 0

@@ -10,8 +10,10 @@ import micropython
 import sys
 
 import led_ring
+import rotary_encoder
 import device_serial_manager as dsm
 import message_protocol as msp
+import state_machine
 
 ### Constants ###
 
@@ -24,6 +26,10 @@ ENCODER_PPR = 20
 
 PIXEL_COUNT = 24
 PIXEL_OFFSET = 20
+
+VOL_DISPLAY_HOLD_TIME = 2000 # Time in ms after the knob stops turning that the volume will continue being displayed
+LIKE_HOLD_TIME = 2000 # Time in ms that the button must be held for in order to like/unlike a song
+SKIP_COUNT_THRESHOLD = 5 # Number of counts (80 being a full circle) the knob must be rotated whilst pressed to skip a track
 
 EXCEPTIONS = [
     AssertionError,
@@ -47,18 +53,20 @@ EXCEPTIONS = [
 ### Handlers ###
 
 def handle_volume_msg(msg: msp.VolumeMessage):
-    ring.set_colour((msg.volume, 255, 255))
+    leds.set_colour((msg.volume, 255, 255))
     utime.sleep(2)
 
 ### Main Program Loop ###
 
 def run_loop():
-    h = 0
+
     while True:
-        dsm.update(ring)
+        
+        dsm.update()
+        leds.update()
+        state_machine.update()
+
         utime.sleep_ms(20)
-        ring.set_colour((180, 200, h))
-        h = (h + 1) % 256
 
 ### Startup ###
 
@@ -85,7 +93,8 @@ micropython.kbd_intr(-1)
 ### Setup ###
 # This should probably be in a function but for now I'm just putting it here
 
-ring = led_ring.LedRing(PIXEL_DATA_PIN, PIXEL_COUNT, PIXEL_OFFSET)
+leds = led_ring.LedRing(PIXEL_DATA_PIN, PIXEL_COUNT, PIXEL_OFFSET)
+encoder = rotary_encoder.Encoder(ENCODER_A_PIN, ENCODER_B_PIN, ENCODER_SW_PIN, ENCODER_PPR)
 
 dsm.init()
 dsm.register_handler(msp.VolumeMessage, handle_volume_msg)
@@ -95,9 +104,9 @@ try:
 
 except Exception as e:
     print(e)
-    ring.set_colour((50, 255, 255))
+    leds.set_colour((50, 255, 255))
     utime.sleep(1)
     for i, ex_type in enumerate(EXCEPTIONS):
         if isinstance(e, ex_type):
-            ring.display_bytes(bytes([i]))
+            leds.display_bytes(bytes([i]))
             break
