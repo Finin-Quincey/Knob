@@ -41,13 +41,12 @@ def run():
             update_loop()
 
     except Exception as e:
-        print(e)
         leds.set_colour((0, 255, 255))
         utime.sleep(1)
         for i, ex_type in enumerate(EXCEPTIONS):
             if isinstance(e, ex_type):
                 leds.display_bytes(bytes([i]))
-                break
+                raise e # Re-throw the error so main.py will catch it in an infinite loop rather than dumping out to the REPL
 
 
 def update_loop():

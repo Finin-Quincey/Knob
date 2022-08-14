@@ -42,8 +42,9 @@ try:
     import device_controller
     device_controller.run()
 
-except:
+except Exception as e:
     # Flash forever if an error happened before we even got to the main loop
     while True:
+        print(e) # Having trouble reading this so let's repeat it forever
         led_pin.toggle()
         utime.sleep_ms(200)
