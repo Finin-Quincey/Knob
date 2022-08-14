@@ -193,6 +193,7 @@ def msg_from_id(id_byte: bytes) -> Message:
     Construct a blank message from its ID, ready to receive bytes of data.
     """
     id = int(id_byte[0])
+    if id >= len(MESSAGE_REGISTRY): raise IndexError("Invalid message ID!")
     msg = MESSAGE_REGISTRY[id]() # Empty brackets because we're calling the constructor here
     return msg
 
