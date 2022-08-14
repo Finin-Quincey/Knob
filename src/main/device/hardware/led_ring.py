@@ -46,6 +46,7 @@ class LedRing:
         self.led_count = led_count
         self.offset = offset
         self.effect = None
+        self._effect_start = 0
 
 
     def update(self):
@@ -53,7 +54,8 @@ class LedRing:
         if self.effect is None:
             return
         
-        self.effect.update(self, utime.ticks_ms)
+        self.effect.update(self._pixels, utime.ticks_ms() - self._effect_start)
+        self._refresh_pixels()
 
 
     def set_colour(self, hsv):
@@ -67,20 +69,23 @@ class LedRing:
         First byte is red, second byte is green, third is blue. Bytes are big-endian when read clockwise.
         Zeros are displayed as dim colours rather than off to prevent ambiguity around where each byte starts and ends.
         """
-        for n, val in enumerate(b):
-            for i in range(8):
-                pixel_index = n * 8 + i
-                if pixel_index >= self.led_count: break # Run out of pixels!
-                c = [0, 0, 0]
-                c[n] = 255 if (val >> i) & 0b00000001 else 10 # Make the zeros dim rather than completely off
-                self._pixels.set_pixel(pixel_index, c, MAX_BRIGHTNESS)
+        self._pixels.clear()
+        if b:
+            for n, val in enumerate(b):
+                for i in range(8):
+                    pixel_index = n * 8 + i
+                    if pixel_index >= self.led_count: break # Run out of pixels!
+                    c = [0, 0, 0]
+                    c[n] = 255 if (val >> i) & 0b00000001 else 10 # Make the zeros dim rather than completely off
+                    self._pixels.set_pixel(pixel_index, c, MAX_BRIGHTNESS)
 
         self._refresh_pixels()
 
 
-    def set_effect(self, effect):
+    def start_effect(self, effect):
         self._pixels.clear()
         self.effect = effect
+        self._effect_start = utime.ticks_ms()
     
     ### Internal methods ###
     
@@ -107,12 +112,33 @@ class LedRing:
 
 class Effect:
     """
-    Base class for lighting effects.
+    Base class for lighting effects. Instances of this class should be stateless, although constant references to external,
+    stateful objects are acceptable where the lighting effect depends on some aspect of the device state. For example, the
+    volume display effect is able to access the current volume via a (constant) reference to the device controller class.
     """
 
     def __init__(self):
+        """
+        Creates a new lighting effect.
+        """
         pass # Nothing here yet
 
 
-    def update(self, led_ring, millis):
+    def update(self, pixels: Neopixel, millis: int):
+        """
+        Called from the LED ring to update the lighting effect. This method should set the colour of each pixel by calling
+        the relevant methods on the provided Neopixel object. The millis argument is the time in ms since the effect started.
+        """
         pass # To be overridden by subclasses
+
+
+class VolumeEffect(Effect):
+    """
+    Lighting effect that displays the current volume around the LED ring.
+    """
+
+    def __init__(self, hsv):
+        self.hsv = hsv
+
+    def update(self, pixels: Neopixel, millis: int):
+        pass # TODO
