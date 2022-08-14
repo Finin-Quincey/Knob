@@ -53,7 +53,7 @@ def read(n: int):
     return sys.stdin.buffer.read(n) if stdin_poll.poll(0) else None # type: ignore
 
 
-def update(ring):
+def update():
     """
     Called from the device controller to update the serial manager.
     """
@@ -77,8 +77,3 @@ def update(ring):
 
 def raise_msg_error(msg, received):
     raise IndexError(f"Incomplete message: expected {msg.size} byte(s), received {received} byte(s). Message type: {type(msg)}")
-
-
-def debug_led(ring, clr):
-    ring.set_colour(clr)
-    utime.sleep(1)
