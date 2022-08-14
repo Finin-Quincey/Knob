@@ -13,6 +13,8 @@ Python has a garbage collector to deal with the old state objects for us :P
 
 import utime
 
+from constants import *
+
 import device_controller as device
 import device_serial_manager as dsm
 import message_protocol as msp
@@ -80,7 +82,7 @@ class VolumeAdjustState(State):
     def update(self):
 
         if device.encoder.count == self.prev_count:
-            if utime.ticks_ms() - self.idle_start_time > device.VOL_DISPLAY_HOLD_TIME:
+            if utime.ticks_ms() - self.idle_start_time > VOL_DISPLAY_HOLD_TIME:
                 set_state(IdleState()) # Knob stationary for long enough, return to idle
                 return
         else:
@@ -104,7 +106,7 @@ class PressedState(State):
 
     def update(self):
 
-        like_time_exceeded = utime.ticks_ms() - self.hold_start_time > device.LIKE_HOLD_TIME
+        like_time_exceeded = utime.ticks_ms() - self.hold_start_time > LIKE_HOLD_TIME
         
         if not device.encoder.is_switch_pressed(): # Button released
         
@@ -121,7 +123,7 @@ class PressedState(State):
             pass
             #dsm.send(LikeMessage()) # TODO
         
-        if abs(device.encoder.count - self.initial_encoder_count) > device.SKIP_COUNT_THRESHOLD:
+        if abs(device.encoder.count - self.initial_encoder_count) > SKIP_COUNT_THRESHOLD:
             set_state(SkippingState(self.initial_encoder_count))
             return # Good practice even when it's the end of the method
 
@@ -143,7 +145,7 @@ class SkippingState(State):
 
         if not device.encoder.is_switch_pressed(): # Button released
             
-            if abs(device.encoder.count - self.initial_encoder_count) > device.SKIP_COUNT_THRESHOLD:
+            if abs(device.encoder.count - self.initial_encoder_count) > SKIP_COUNT_THRESHOLD:
                 dsm.send(msp.SkipMessage(device.encoder.count > 0))
             
             set_state(IdleState())

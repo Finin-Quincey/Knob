@@ -1,9 +1,8 @@
 import machine
 import utime
-from machine import Pin
 from neopixel import Neopixel
 
-### Constants ###
+### Local Constants ###
 
 MAX_PIOS = 4 # Total number of PIOs (state machines) onboard the Pico
 MAX_BRIGHTNESS = 15

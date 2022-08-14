@@ -7,13 +7,8 @@ for /F %%i in ('ampy ls') do (
 for %%d in (.\\src\\main\\common, .\\src\\main\\device, .\\lib\\device) do (
     pushd %%d
     for /R %%f in (*.py) do (
-        if /I "%%f"=="%~1" (
-            echo Writing %%f as main.py
-            ampy put "%%f" "main.py"
-        ) else (
-            echo Writing %%f
-            ampy put "%%f" "%%~nxf"
-        )
+        echo Writing %%f
+        ampy put "%%f" "%%~nxf"
     )
     popd
 )

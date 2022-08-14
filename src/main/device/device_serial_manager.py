@@ -6,10 +6,9 @@ messages.
 """
 
 import sys
-import utime
 import uselect
 
-import message_protocol
+import message_protocol as msp
 
 ### Globals ###
 
@@ -36,7 +35,7 @@ def init():
     stdin_poll.register(sys.stdin.buffer, uselect.POLLIN)  # type: ignore
 
 
-def send(msg: message_protocol.Message):
+def send(msg: msp.Message):
     """
     Sends the given message to the host.
     """
@@ -63,7 +62,7 @@ def update():
         if not id: return # If there are no bytes waiting, we're done
 
         # Reconstruct message object
-        msg = message_protocol.msg_from_id(id)
+        msg = msp.msg_from_id(id)
         if msg.size == 0: continue # Some messages contain no additional data - if so, move onto the next message
 
         # Decode additional message data
