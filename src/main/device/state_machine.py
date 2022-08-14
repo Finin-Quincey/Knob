@@ -31,12 +31,6 @@ class State:
         """
         pass
 
-    def on_entry(self):
-        """
-        Called immediately when the device transitions to this state, to perform any necessary initialisation.
-        """
-        pass
-
     def update(self):
         """
         Called each update cycle to perform state-specific logic.
@@ -52,11 +46,11 @@ class IdleState(State):
     # that would result in extra complexity with the other states knowing which state to return to when they are done.
     # Instead, it should be implemented as a simple if statement and a bool to keep track of the playback status.
     # Edit: Then again, now we're creating state objects each time we could feasibly store a prev_state to go back to...
-    
-    def on_entry(self):
+
+    def __init__(self):
+        self.idle_start_time = utime.ticks_ms()
         self.prev_count = device.encoder.count # Used to detect when the knob has been rotated
-        #device.leds.set_colour((0, 0, 0))
-        device.leds.set_colour((100, 255, 255)) # Green
+        device.leds.set_colour((180, 255, 255)) # Cyan
 
     def update(self):
 
@@ -75,9 +69,7 @@ class VolumeAdjustState(State):
         self.idle_start_time = utime.ticks_ms()
         self.prev_count = device.encoder.count # Used to detect when the knob has been rotated
         device.leds.set_colour((180, 255, 255)) # Cyan
-
-    def on_entry(self):
-        device.leds.start_effect(VolumeEffect((0, 0, 255)))
+        #device.leds.start_effect(VolumeEffect((0, 0, 255)))
 
     def update(self):
 
@@ -100,9 +92,6 @@ class PressedState(State):
         self.hold_start_time = utime.ticks_ms()
         self.initial_encoder_count = device.encoder.count
         device.leds.set_colour((240, 255, 255)) # Blue
-
-    def on_entry(self):
-        pass
 
     def update(self):
 
@@ -138,9 +127,6 @@ class SkippingState(State):
         self.initial_encoder_count = initial_encoder_count
         device.leds.set_colour((300, 255, 255)) # Magenta
 
-    def on_entry(self):
-        pass
-
     def update(self):
 
         if not device.encoder.is_switch_pressed(): # Button released
@@ -163,7 +149,6 @@ def set_state(new_state):
     global _current_state
     if new_state == _current_state: return
     _current_state = new_state
-    _current_state.on_entry()
 
 
 def update():
