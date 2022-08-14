@@ -88,7 +88,8 @@ class VolumeRequestMessage(Message):
     
     Additional data: None
     """
-    pass # No additional data required
+    def __init__(self):
+        super().__init__() # No additional data required
 
 
 class VolumeMessage(Message):
@@ -121,7 +122,8 @@ class TogglePlaybackMessage(Message):
     
     Additional data: None
     """
-    pass # No additional data required
+    def __init__(self):
+        super().__init__() # No additional data required
 
 
 class PlaybackStatusMessage(Message):
