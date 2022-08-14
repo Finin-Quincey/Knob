@@ -50,12 +50,19 @@ class IdleState(State):
     def __init__(self):
         self.idle_start_time = utime.ticks_ms()
         self.prev_count = device.encoder.count # Used to detect when the knob has been rotated
-        device.leds.set_colour((180, 255, 255)) # Cyan
+        device.leds.set_colour((90, 255, 255)) # Green
 
     def update(self):
 
+        if device.encoder.is_switch_pressed():
+            set_state(PressedState())
+            return
+
         if device.encoder.count != self.prev_count: # TODO: Figure out a nice way of storing prev count / changed info
             dsm.send(msp.VolumeRequestMessage())
+            # TODO: Temporary measure to check the state machine is working
+            set_state(VolumeAdjustState())
+            return
 
         self.prev_count = device.encoder.count
 
