@@ -59,4 +59,4 @@ class Encoder:
         """
         Returns True if the switch is currently pressed down, False otherwise.
         """
-        return self.pin_sw.value() > 0
+        return self.pin_sw.value() == 0
