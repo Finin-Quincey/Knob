@@ -32,8 +32,7 @@ def init():
 ### Handlers ###
 
 def handle_volume_msg(msg: msp.VolumeMessage):
-    leds.set_colour((msg.volume, 255, 255))
-    utime.sleep(2)
+    state_machine.set_state(state_machine.VolumeAdjustState(msg.volume))
 
 
 ### Main Program Loop ###

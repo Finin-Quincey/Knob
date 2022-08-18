@@ -99,6 +99,7 @@ class VolumeMessage(Message):
 
     def __init__(self, volume = 0.0):
         super().__init__(size = 1)
+        if volume < 0 or volume > 1: raise ValueError(f"Invalid volume level: {volume}")
         self.volume = volume
 
     def to_bytes(self, data: list) -> list:

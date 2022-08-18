@@ -50,15 +50,17 @@ class SerialManager():
 
             # Reconstruct message object
             msg = msp.msg_from_id(id)
-            if msg.size == 0: continue # Some messages contain no additional data - if so, move onto the next message
 
             # Decode additional message data
-            data_bytes = self.read(msg.size)
-            if not data_bytes: raise_msg_error(msg, 0)
-            if len(data_bytes) < msg.size: raise_msg_error(msg, len(data_bytes))
-            msg.decode(data_bytes)
+            if msg.size > 0: # Some messages contain no additional data
+                data_bytes = self.read(msg.size)
+                if not data_bytes: raise_msg_error(msg, 0)
+                if len(data_bytes) < msg.size: raise_msg_error(msg, len(data_bytes))
+                msg.decode(data_bytes)
+
+            # Call the handler (if it exists) for this type of message to do whatever it needs to do
             if type(msg) in self.message_handlers:
-                self.message_handlers[type(msg)](msg) # Call the handler for this type of message to do whatever it needs to do
+                self.message_handlers[type(msg)](msg)
 
 
     ### Abstract Methods ###

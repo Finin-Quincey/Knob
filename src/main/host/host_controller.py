@@ -14,6 +14,8 @@ from host_serial_manager import HostSerialManager
 
 serial_manager = HostSerialManager()
 
+audio.init()
+
 
 ### Handlers ###
 
@@ -37,6 +39,8 @@ serial_manager.register_handler(msp.VolumeMessage, handle_vol_change)
 
 ### Main Program Loop ###
 
-while(True):
+with serial_manager:
 
-    serial_manager.update()
+    while(True):
+
+        serial_manager.update()

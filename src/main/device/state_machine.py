@@ -61,7 +61,7 @@ class IdleState(State):
         if device.encoder.count != self.prev_count: # TODO: Figure out a nice way of storing prev count / changed info
             device.serial_manager.send(msp.VolumeRequestMessage())
             # TODO: Temporary measure to check the state machine is working
-            set_state(VolumeAdjustState())
+            # set_state(VolumeAdjustState())
             return
 
         self.prev_count = device.encoder.count
@@ -72,7 +72,8 @@ class VolumeAdjustState(State):
     Class representing the state of the device while the volume is being adjusted.
     """
 
-    def __init__(self):
+    def __init__(self, initial_volume):
+        self.volume = initial_volume
         self.idle_start_time = utime.ticks_ms()
         self.prev_count = device.encoder.count # Used to detect when the knob has been rotated
         device.leds.set_colour((180, 255, 255)) # Cyan
@@ -85,6 +86,13 @@ class VolumeAdjustState(State):
                 set_state(IdleState()) # Knob stationary for long enough, return to idle
                 return
         else:
+            delta = device.encoder.count - self.prev_count
+            # Check we're not trying to go below 0 or above 1
+            if not any([self.volume == 0 and delta < 0, self.volume == 1 and delta > 0]):
+                self.volume += delta / (ENCODER_PPR * 4) # Update internal volume variable
+                msg = msp.VolumeMessage(self.volume)
+                device.serial_manager.send(msg)
+
             self.idle_start_time = utime.ticks_ms() # Knob moved, reset idle timer
 
         self.prev_count = device.encoder.count

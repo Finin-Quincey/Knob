@@ -39,4 +39,4 @@ class HostSerialManager(SerialManager):
         self.serial_connection.write(msg.encode())
 
     def read(self, n: int):
-        return self.serial_connection.read(n) if self.serial_connection.in_waiting() else None
+        return self.serial_connection.read(n) if self.serial_connection.in_waiting else None
