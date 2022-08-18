@@ -59,7 +59,7 @@ class IdleState(State):
             return
 
         if device.encoder.count != self.prev_count: # TODO: Figure out a nice way of storing prev count / changed info
-            dsm.send(msp.VolumeRequestMessage())
+            device.serial_manager.send(msp.VolumeRequestMessage())
             # TODO: Temporary measure to check the state machine is working
             set_state(VolumeAdjustState())
             return
@@ -107,7 +107,7 @@ class PressedState(State):
         if not device.encoder.is_switch_pressed(): # Button released
         
             if not like_time_exceeded:
-                dsm.send(msp.TogglePlaybackMessage()) # Short press: send play/pause message
+                device.serial_manager.send(msp.TogglePlaybackMessage()) # Short press: send play/pause message
 
             set_state(IdleState()) # Return to idle as soon as the button is released, regardless of hold duration
             return
@@ -139,7 +139,7 @@ class SkippingState(State):
         if not device.encoder.is_switch_pressed(): # Button released
             
             if abs(device.encoder.count - self.initial_encoder_count) > SKIP_COUNT_THRESHOLD:
-                dsm.send(msp.SkipMessage(device.encoder.count > 0))
+                device.serial_manager.send(msp.SkipMessage(device.encoder.count > 0))
             
             set_state(IdleState())
             return

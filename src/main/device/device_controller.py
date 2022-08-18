@@ -1,28 +1,31 @@
 """
 Device Controller
 
-Responsible for overall control flow on the device end. This file is run on device boot.
+Module responsible for overall control flow on the device end. The run() function is called from main.py on device boot.
 """
 
 import utime
 
 from constants import * # Usually considered bad practice but here I think it improves readability
 
-import led_ring
-import rotary_encoder
-
-### Setup ###
-
-leds = led_ring.LedRing(PIXEL_DATA_PIN, PIXEL_COUNT, PIXEL_OFFSET)
-encoder = rotary_encoder.Encoder(ENCODER_A_PIN, ENCODER_B_PIN, ENCODER_SW_PIN, ENCODER_PPR)
-
-import device_serial_manager as dsm
+from led_ring import LedRing
+from rotary_encoder import Encoder
+from device_serial_manager import DeviceSerialManager
 import message_protocol as msp
 import state_machine
 
+### Setup ###
+
+# Hardware
+leds = LedRing(PIXEL_DATA_PIN, PIXEL_COUNT, PIXEL_OFFSET)
+encoder = Encoder(ENCODER_A_PIN, ENCODER_B_PIN, ENCODER_SW_PIN, ENCODER_PPR)
+
+# Serial manager
+serial_manager = DeviceSerialManager()
+
+
 def init():
-    dsm.init()
-    dsm.register_handler(msp.VolumeMessage, handle_volume_msg)
+    serial_manager.register_handler(msp.VolumeMessage, handle_volume_msg)
 
 
 ### Handlers ###
@@ -54,7 +57,7 @@ def run():
 
 def update_loop():
         
-    dsm.update()
+    serial_manager.update()
     leds.update()
     state_machine.update()
 
