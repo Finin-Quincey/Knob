@@ -10,15 +10,16 @@ from constants import * # Usually considered bad practice but here I think it im
 
 from led_ring import LedRing
 from rotary_encoder import Encoder
-from device_serial_manager import DeviceSerialManager
-import message_protocol as msp
-import state_machine
 
 ### Setup ###
 
 # Hardware
 leds = LedRing(PIXEL_DATA_PIN, PIXEL_COUNT, PIXEL_OFFSET)
 encoder = Encoder(ENCODER_A_PIN, ENCODER_B_PIN, ENCODER_SW_PIN, ENCODER_PPR)
+
+from device_serial_manager import DeviceSerialManager
+import message_protocol as msp
+import state_machine
 
 # Serial manager
 serial_manager = DeviceSerialManager()

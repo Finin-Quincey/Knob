@@ -34,4 +34,4 @@ class DeviceSerialManager(SerialManager):
         # TODO: Check how this responds if the number of bytes available is not zero but is less than n
         #       In theory we shouldn't encounter this problem since we only read more than 1 byte when we know there is a
         #       message there (and how many bytes it should contain), but for robustness it would be good to nail this down
-        return sys.stdin.buffer.read(n) if stdin_poll.poll(0) else None # type: ignore
+        return sys.stdin.buffer.read(n) if self.stdin_poll.poll(0) else None # type: ignore
