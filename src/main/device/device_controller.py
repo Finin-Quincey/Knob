@@ -47,7 +47,9 @@ def run():
         for i, ex_type in enumerate(EXCEPTIONS):
             if isinstance(e, ex_type):
                 leds.display_bytes(bytes([i]))
-                raise e # Re-throw the error so main.py will catch it in an infinite loop rather than dumping out to the REPL
+                # Re-throw the error so main.py will catch it in an infinite loop rather than dumping out to the REPL
+                # That way the serial output won't get flushed and we can actually read the error description
+                raise e
 
 
 def update_loop():

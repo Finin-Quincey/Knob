@@ -15,8 +15,9 @@ from constants import * # Usually considered bad practice but here I think it im
 
 # This is done in here, BEFORE importing any modules that might error, so we always have some idea of what's going on
 
-sw_pin = Pin(ENCODER_SW_PIN, Pin.IN, Pin.PULL_UP)
 led_pin = Pin(ONBOARD_LED_PIN, Pin.OUT)
+sw_pin = Pin(ENCODER_SW_PIN, Pin.IN, Pin.PULL_UP)
+
 led_pin.high() # Good check to see whether the script started successfully
 
 # Get-out function: plug in while holding encoder button

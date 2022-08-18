@@ -6,7 +6,7 @@ how to convert that data to and from bytes (encoding and decoding).
 
 This class is common, meaning it is part of both the host Python program and the device MicroPython program. As such, it only
 uses language elements that are common to both Python and MicroPython. Because the actual method of sending and receiving
-messages differs between the device (uart) and host (pyserial), this is done outside of this module. By making this class
+messages differs between the device (stdin/out) and host (pyserial), this is done outside of this module. By making this class
 common, it guarantees that the device and host interpret messages the same way.
 """
 
