@@ -97,16 +97,16 @@ class VolumeMessage(Message):
     - volume (1 byte, where 0 is muted and 255 is max. volume)
     """
 
-    def __init__(self, volume = 0):
+    def __init__(self, volume = 0.0):
         super().__init__(size = 1)
         self.volume = volume
 
     def to_bytes(self, data: list) -> list:
-        data.append(self.volume)
+        data.append(int(self.volume * 255))
         return data
 
     def from_bytes(self, data: list):
-        self.volume = data.pop(0)
+        self.volume = data.pop(0) / 255 # Automatic conversion to float
 
 
 class TogglePlaybackMessage(Message):
