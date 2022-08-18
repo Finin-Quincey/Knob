@@ -38,21 +38,35 @@ async def get_media_info():
     raise Exception('TARGET_PROGRAM is not the current media session')
 
 
+async def toggle_playback() -> bool:
+
+    sessions = await MediaManager.request_async()
+    current_session = sessions.get_current_session()
+
+    if current_session:
+        success = await current_session.try_toggle_play_pause_async()
+        return success
+
+    raise Exception('No playback session currently running')
+
+
 if __name__ == '__main__':
     
-    current_media_info = asyncio.run(get_media_info())
-    print(current_media_info)
+    # current_media_info = asyncio.run(get_media_info())
+    # print(current_media_info)
 
-    devices = AudioUtilities.GetSpeakers()
-    interface = devices.Activate(IAudioEndpointVolume._iid_, CLSCTX_ALL, None)
-    volume = cast(interface, POINTER(IAudioEndpointVolume))
-    #print(volume.GetMasterVolumeLevelScalar())
-    #print(volume.GetVolumeStepInfo()) # Returns: "pnStep", "pnStepCount"
-    #print(volume.GetVolumeRange()) # Returns: "pfMin", "pfMax", "pfIncr"
-    volume.SetMasterVolumeLevelScalar(1, None)
+    asyncio.run(toggle_playback())
 
-    while(True):
-        time.sleep(2)
-        volume.SetMasterVolumeLevelScalar(0.5, None)
-        time.sleep(2)
-        volume.SetMasterVolumeLevelScalar(1, None)
+    # devices = AudioUtilities.GetSpeakers()
+    # interface = devices.Activate(IAudioEndpointVolume._iid_, CLSCTX_ALL, None)
+    # volume = cast(interface, POINTER(IAudioEndpointVolume))
+    # #print(volume.GetMasterVolumeLevelScalar())
+    # #print(volume.GetVolumeStepInfo()) # Returns: "pnStep", "pnStepCount"
+    # #print(volume.GetVolumeRange()) # Returns: "pfMin", "pfMax", "pfIncr"
+    # volume.SetMasterVolumeLevelScalar(1, None)
+
+    # while(True):
+    #     time.sleep(2)
+    #     volume.SetMasterVolumeLevelScalar(0.5, None)
+    #     time.sleep(2)
+    #     volume.SetMasterVolumeLevelScalar(1, None)
