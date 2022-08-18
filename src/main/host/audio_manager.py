@@ -40,7 +40,7 @@ def get_volume() -> float:
     Returns the system volume, expressed as a fraction between 0 (muted) and 1 (max volume)
     """
     if not initialised: raise RuntimeError("Audio manager accessed before initialisation!")
-    return system_volume.GetMasterVolumeLevelScalar()
+    return system_volume.GetMasterVolumeLevelScalar() # type: ignore
 
 
 def set_volume(volume: float):
@@ -49,7 +49,7 @@ def set_volume(volume: float):
     """
     if not initialised: raise RuntimeError("Audio manager accessed before initialisation!")
     if volume < 0 or volume > 1: raise ValueError(f"Invalid volume level: {volume}")
-    system_volume.SetMasterVolumeLevelScalar(volume, None)
+    system_volume.SetMasterVolumeLevelScalar(volume, None) # type: ignore
 
 
 def toggle_playback() -> bool:
