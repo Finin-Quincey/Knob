@@ -26,6 +26,8 @@ VOL_DISPLAY_HOLD_TIME = 2000    # Time in ms after the knob stops turning that t
 LIKE_HOLD_TIME = 2000           # Time in ms that the button must be held for in order to like/unlike a song
 ENCODER_MOVEMENT_THRESHOLD = 3  # Rotations of fewer than this many encoder counts will be ignored (80 = 1 rev.)
 
+VOLUME_DISPLAY_COLOUR = (0, 0, 255)   # Colour of the pixels when displaying the current volume
+
 # List of all the exceptions in MicroPython (I think - certainly the most common ones anyway)
 EXCEPTIONS = [
     AssertionError,

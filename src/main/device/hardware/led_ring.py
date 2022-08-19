@@ -1,5 +1,6 @@
 import machine
 import utime
+
 from neopixel import Neopixel
 
 ### Local Constants ###
@@ -58,8 +59,38 @@ class LedRing:
         self._refresh_pixels()
 
 
+    def set_pixel(self, index: int, hsv):
+        """
+        Sets the pixel at the given index to the given colour, with gamma correction applied.
+        An index of 0 corresponds to the pixel above the USB; indices increase moving clockwise.
+        """
+        self._pixels.set_pixel(self._to_pixel_index(index), self._apply_gamma(hsv), how_bright = MAX_BRIGHTNESS)
+
+
     def set_colour(self, hsv):
+        """
+        Sets all pixels to the given colour, with gamma correction applied.
+        """
         self._pixels.fill(self._apply_gamma(hsv), how_bright = MAX_BRIGHTNESS)
+        self._refresh_pixels()
+
+
+    def display_fraction(self, fraction: float, hsv, smoothing = 1.0):
+        """
+        Lights up the given fraction of the ring (clockwise from the back), with optional smoothing.
+        """
+        # TODO: Implement smoothing
+        self._pixels.clear()
+
+        f = fraction * self.led_count
+        on_pixels = int(f)
+        remainder = f - on_pixels
+
+        for i in range(on_pixels):
+            self.set_pixel(i, hsv)
+
+        # For a fraction of 1, all the pixels are already on so no need for this
+        if on_pixels < self.led_count: self.set_pixel(on_pixels, (hsv[0], hsv[1], hsv[2] * remainder))
         self._refresh_pixels()
 
 
@@ -100,6 +131,15 @@ class LedRing:
         machine.enable_irq(state)
 
 
+    def _to_pixel_index(self, index: int) -> int:
+        """
+        Returns the actual pixel index corresponding to the given position around the device, where an input index of 0
+        corresponds to the LED directly above the USB port and indices increase clockwise around the device.
+        """
+        if index > 23 or index < 0: raise ValueError(f"Invalid pixel index: {index}")
+        return (self.offset - index) % self.led_count
+
+
     def _apply_gamma(self, hsv) -> tuple[int]:
         """
         Applies gamma correction to the given hsv colour and returns it as an rgb colour.
@@ -107,7 +147,7 @@ class LedRing:
         if len(hsv) != 3: raise ValueError("Unexpected colour format; must be a sequence of exactly 3 ints")
         # Apply gamma correction to the value channel before converting to RGB
         # This should give natural-looking results whilst being very cheap and simple to implement
-        return self._pixels.colorHSV(int(hsv[0]/360 * 65535), hsv[1], GAMMA_LOOKUP[hsv[2]])
+        return self._pixels.colorHSV(int(hsv[0]/360 * 65535), hsv[1], GAMMA_LOOKUP[int(hsv[2])])
 
 
 class Effect:
