@@ -16,9 +16,7 @@ import utime
 from constants import *
 
 import device_controller as device
-import device_serial_manager as dsm
 import message_protocol as msp
-from led_ring import VolumeEffect
 
 class State:
     """
