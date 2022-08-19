@@ -32,9 +32,15 @@ def handle_vol_change(msg: msp.VolumeMessage):
     audio.set_volume(msg.volume)
 
 
+def handle_toggle_playback(msg: msp.TogglePlaybackMessage):
+    audio.toggle_playback()
+    # TODO: Retrieve playback status and send to device
+
+
 # Register message handlers
 serial_manager.register_handler(msp.VolumeRequestMessage, handle_vol_request)
 serial_manager.register_handler(msp.VolumeMessage, handle_vol_change)
+serial_manager.register_handler(msp.TogglePlaybackMessage, handle_toggle_playback)
 
 
 ### Main Program Loop ###
