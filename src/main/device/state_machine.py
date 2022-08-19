@@ -49,7 +49,7 @@ class IdleState(State):
 
     def __init__(self):
         self.idle_start_time = utime.ticks_ms()
-        self.prev_count = device.encoder.count # Used to detect when the knob has been rotated
+        self.initial_encoder_count = device.encoder.count # Used to detect when the knob has been rotated
         device.leds.set_colour((90, 255, 255)) # Green
 
     def update(self):
@@ -58,13 +58,9 @@ class IdleState(State):
             set_state(PressedState())
             return
 
-        if device.encoder.count != self.prev_count: # TODO: Figure out a nice way of storing prev count / changed info
+        if abs(device.encoder.count - self.initial_encoder_count) > ENCODER_MOVEMENT_THRESHOLD:
             device.serial_manager.send(msp.VolumeRequestMessage())
-            # TODO: Temporary measure to check the state machine is working
-            # set_state(VolumeAdjustState())
             return
-
-        self.prev_count = device.encoder.count
 
 
 class VolumeAdjustState(State):
@@ -132,7 +128,7 @@ class PressedState(State):
             pass
             #dsm.send(LikeMessage()) # TODO
         
-        if abs(device.encoder.count - self.initial_encoder_count) > SKIP_COUNT_THRESHOLD:
+        if abs(device.encoder.count - self.initial_encoder_count) > ENCODER_MOVEMENT_THRESHOLD:
             set_state(SkippingState(self.initial_encoder_count))
             return # Good practice even when it's the end of the method
 
@@ -151,7 +147,7 @@ class SkippingState(State):
 
         if not device.encoder.is_switch_pressed(): # Button released
             
-            if abs(device.encoder.count - self.initial_encoder_count) > SKIP_COUNT_THRESHOLD:
+            if abs(device.encoder.count - self.initial_encoder_count) > ENCODER_MOVEMENT_THRESHOLD:
                 device.serial_manager.send(msp.SkipMessage(device.encoder.count > 0))
             
             set_state(IdleState())

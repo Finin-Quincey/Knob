@@ -24,7 +24,7 @@ PIXEL_OFFSET = 20               # Index of the first pixel clockwise from the ba
 
 VOL_DISPLAY_HOLD_TIME = 2000    # Time in ms after the knob stops turning that the volume will continue being displayed
 LIKE_HOLD_TIME = 2000           # Time in ms that the button must be held for in order to like/unlike a song
-SKIP_COUNT_THRESHOLD = 5        # Number of encoder counts the knob must be rotated whilst pressed to skip a track (80 = 1 rev.)
+ENCODER_MOVEMENT_THRESHOLD = 3  # Rotations of fewer than this many encoder counts will be ignored (80 = 1 rev.)
 
 # List of all the exceptions in MicroPython (I think - certainly the most common ones anyway)
 EXCEPTIONS = [
