@@ -87,9 +87,10 @@ class VolumeAdjustState(State):
                 return
         else:
             delta = device.encoder.count - self.prev_count
-            # Check we're not trying to go below 0 or above 1
-            if not any([self.volume == 0 and delta < 0, self.volume == 1 and delta > 0]):
-                self.volume += delta / (ENCODER_PPR * 4) # Update internal volume variable
+            prev_vol = self.volume # Record previous volume level for comparison later
+            self.volume += delta / (ENCODER_PPR * 4) # Update internal volume variable
+            self.volume = min(max(self.volume, 0), 1) # Clamp to between 0 and 1
+            if self.volume != prev_vol: # Optimisation: Don't send a message if the volume didn't change
                 msg = msp.VolumeMessage(self.volume)
                 device.serial_manager.send(msg)
 
