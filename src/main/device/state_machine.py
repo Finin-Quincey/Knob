@@ -86,7 +86,11 @@ class VolumeAdjustState(State):
                 set_state(IdleState()) # Knob stationary for long enough, return to idle
                 return
         else:
+            # Calculate change in encoder count since the last update, wrapping to the -180 to 180 degree range
             delta = device.encoder.count - self.prev_count
+            if delta < -ENCODER_PPR*2: delta += ENCODER_PPR*4 # Wraparound clockwise
+            if delta >  ENCODER_PPR*2: delta -= ENCODER_PPR*4 # Wraparound anticlockwise
+            
             prev_vol = self.volume # Record previous volume level for comparison later
             self.volume += delta / (ENCODER_PPR * 4) # Update internal volume variable
             self.volume = min(max(self.volume, 0), 1) # Clamp to between 0 and 1
