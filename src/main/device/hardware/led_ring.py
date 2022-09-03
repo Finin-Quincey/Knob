@@ -5,7 +5,7 @@ from neopixel import Neopixel
 
 ### Local Constants ###
 
-MAX_PIOS = 4 # Total number of PIOs (state machines) onboard the Pico
+MAX_PIOS = 8 # Total number of PIOs (state machines) onboard the Pico
 MAX_BRIGHTNESS = 15
 
 # Lookup table for gamma-corrected 8-bit values
