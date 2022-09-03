@@ -56,7 +56,7 @@ class IdleState(State):
             set_state(PressedState())
             return
 
-        if abs(device.encoder.count - self.initial_encoder_count) > ENCODER_MOVEMENT_THRESHOLD:
+        if abs(device.encoder.count - self.initial_encoder_count) > ENCODER_DEADZONE:
             device.serial_manager.send(msp.VolumeRequestMessage())
             return
 
@@ -124,7 +124,7 @@ class PressedState(State):
             pass
             #dsm.send(LikeMessage()) # TODO
         
-        if abs(encoder_delta(self.initial_encoder_count, device.encoder.count)) > ENCODER_MOVEMENT_THRESHOLD:
+        if abs(encoder_delta(self.initial_encoder_count, device.encoder.count)) > ENCODER_DEADZONE:
             set_state(SkippingState(self.initial_encoder_count))
             return # Good practice even when it's the end of the method
 
@@ -145,7 +145,7 @@ class SkippingState(State):
 
             delta = encoder_delta(self.initial_encoder_count, device.encoder.count)
             
-            if abs(delta) > ENCODER_MOVEMENT_THRESHOLD:
+            if abs(delta) > ENCODER_DEADZONE:
                 device.serial_manager.send(msp.SkipMessage(delta > 0))
             
             set_state(IdleState())

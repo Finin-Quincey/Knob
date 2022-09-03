@@ -24,7 +24,7 @@ PIXEL_OFFSET = 20               # Index of the first pixel clockwise from the ba
 
 VOL_DISPLAY_HOLD_TIME = 2000    # Time in ms after the knob stops turning that the volume will continue being displayed
 LIKE_HOLD_TIME = 2000           # Time in ms that the button must be held for in order to like/unlike a song
-ENCODER_MOVEMENT_THRESHOLD = 3  # Rotations of fewer than this many encoder counts will be ignored (80 = 1 rev.)
+ENCODER_DEADZONE = 3            # Rotations of fewer than this many encoder counts will be ignored (80 = 1 rev.)
 
 VOLUME_DISPLAY_COLOUR = (0, 0, 255)   # Colour of the pixels when displaying the current volume
 
