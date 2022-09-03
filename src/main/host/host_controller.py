@@ -4,8 +4,9 @@ Host Controller
 Module responsible for overall control flow on the host end. Runs on host process start.
 """
 
-import audio_manager as audio
+import time
 
+import audio_manager as audio
 import message_protocol as msp
 from host_serial_manager import HostSerialManager
 
@@ -37,10 +38,15 @@ def handle_toggle_playback(msg: msp.TogglePlaybackMessage):
     # TODO: Retrieve playback status and send to device
 
 
+def handle_skip_message(msg: msp.SkipMessage):
+    audio.skip(msg.forward)
+
+
 # Register message handlers
 serial_manager.register_handler(msp.VolumeRequestMessage, handle_vol_request)
 serial_manager.register_handler(msp.VolumeMessage, handle_vol_change)
 serial_manager.register_handler(msp.TogglePlaybackMessage, handle_toggle_playback)
+serial_manager.register_handler(msp.SkipMessage, handle_skip_message)
 
 
 ### Main Program Loop ###
@@ -50,3 +56,5 @@ with serial_manager:
     while(True):
 
         serial_manager.update()
+
+        time.sleep(0.02)

@@ -80,9 +80,7 @@ class VolumeAdjustState(State):
                 return
         else:
             # Calculate change in encoder count since the last update, wrapping to the -180 to 180 degree range
-            delta = device.encoder.count - self.prev_count
-            if delta < -ENCODER_PPR*2: delta += ENCODER_PPR*4 # Wraparound clockwise
-            if delta >  ENCODER_PPR*2: delta -= ENCODER_PPR*4 # Wraparound anticlockwise
+            delta = encoder_delta(self.prev_count, device.encoder.count)
             
             prev_vol = self.volume # Record previous volume level for comparison later
             self.volume += delta / (ENCODER_PPR * 4) # Update internal volume variable
@@ -126,7 +124,7 @@ class PressedState(State):
             pass
             #dsm.send(LikeMessage()) # TODO
         
-        if abs(device.encoder.count - self.initial_encoder_count) > ENCODER_MOVEMENT_THRESHOLD:
+        if abs(encoder_delta(self.initial_encoder_count, device.encoder.count)) > ENCODER_MOVEMENT_THRESHOLD:
             set_state(SkippingState(self.initial_encoder_count))
             return # Good practice even when it's the end of the method
 
@@ -144,9 +142,11 @@ class SkippingState(State):
     def update(self):
 
         if not device.encoder.is_switch_pressed(): # Button released
+
+            delta = encoder_delta(self.initial_encoder_count, device.encoder.count)
             
-            if abs(device.encoder.count - self.initial_encoder_count) > ENCODER_MOVEMENT_THRESHOLD:
-                device.serial_manager.send(msp.SkipMessage(device.encoder.count > 0))
+            if abs(delta) > ENCODER_MOVEMENT_THRESHOLD:
+                device.serial_manager.send(msp.SkipMessage(delta > 0))
             
             set_state(IdleState())
             return
@@ -155,6 +155,16 @@ class SkippingState(State):
 ### Globals ###
 
 _current_state = IdleState()
+
+def encoder_delta(old_count: int, new_count: int) -> int:
+    """
+    Calculates the change between the two given encoder count values, wrapping to the -180 to 180 degree range
+    """
+    delta = new_count - old_count
+    if delta < -ENCODER_PPR*2: delta += ENCODER_PPR*4 # Wraparound clockwise
+    if delta >  ENCODER_PPR*2: delta -= ENCODER_PPR*4 # Wraparound anticlockwise
+    return delta
+
 
 def set_state(new_state):
     """
