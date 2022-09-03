@@ -61,4 +61,4 @@ def update_loop():
     leds.update()
     state_machine.update()
 
-    utime.sleep_ms(20)
+    utime.sleep_ms(40)
