@@ -7,6 +7,7 @@ File containing various global constants used by the host software, device softw
 # Serial comms
 BAUD_RATE = 115200              # Baud rate for the serial communication
 COM_PORT = "COM8"               # TODO: Make this not hardcoded
+RECONNECT_DELAY = 5             # Time between connection attempts, in seconds
 
 # Pin number assignments for the Raspberry Pi Pico
 ONBOARD_LED_PIN = 25            # Pin number used for the onboard LED on the Raspberry Pi Pico

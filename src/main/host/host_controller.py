@@ -9,6 +9,7 @@ import time
 import audio_manager as audio
 import message_protocol as msp
 from host_serial_manager import HostSerialManager
+from serial.serialutil import SerialException
 
 
 ### Setup ###
@@ -51,10 +52,23 @@ serial_manager.register_handler(msp.SkipMessage, handle_skip_message)
 
 ### Main Program Loop ###
 
-with serial_manager:
+while(True):
 
-    while(True):
+    print("Attempting device connection...")
 
-        serial_manager.update()
+    try:
 
-        time.sleep(0.02)
+        with serial_manager:
+
+            print("Device connection successful")
+
+            while(True):
+
+                serial_manager.update()
+
+                time.sleep(0.02)
+
+    except SerialException:
+        print("Failed to connect to device; retrying")
+
+    time.sleep(RECONNECT_DELAY)

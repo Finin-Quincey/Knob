@@ -20,17 +20,20 @@ class HostSerialManager(SerialManager):
 
     def __init__(self):
         super().__init__()
-        self.serial_connection = serial.Serial(COM_PORT, BAUD_RATE, timeout = 5)
 
 
     ### Context Manager Methods ###
 
     def __enter__(self):
+        self.serial_connection = serial.Serial(COM_PORT, BAUD_RATE, timeout = 5)
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
-        self.serial_connection.flush()
-        self.serial_connection.close()
+        try:
+            self.serial_connection.flush()
+            self.serial_connection.close()
+        except: # Plug was pulled so we can't do anything
+            print("Device disconnected")
 
 
     ### Method Implementations ###
