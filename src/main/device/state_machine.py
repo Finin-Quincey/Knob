@@ -74,6 +74,10 @@ class VolumeAdjustState(State):
 
     def update(self):
 
+        if device.encoder.is_switch_pressed():
+            set_state(PressedState())
+            return
+
         if device.encoder.count == self.prev_count:
             if utime.ticks_ms() - self.idle_start_time > VOL_DISPLAY_HOLD_TIME:
                 set_state(IdleState()) # Knob stationary for long enough, return to idle
