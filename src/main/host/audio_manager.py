@@ -147,4 +147,4 @@ async def _get_media_info():
 
         return info_dict
 
-    raise RuntimeError('No playback session currently running')
+    raise Exception('No playback session currently running')
