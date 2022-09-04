@@ -101,7 +101,8 @@ async def _toggle_playback() -> bool:
         # TODO: Make this get the playback status and return that instead
         return success
 
-    raise Exception('No playback session currently running')
+    return False
+    #raise Exception('No playback session currently running')
 
 
 async def _skip_forward() -> bool:
@@ -115,7 +116,8 @@ async def _skip_forward() -> bool:
         success = await current_session.try_skip_next_async()
         return success
 
-    raise Exception('No playback session currently running')
+    return False
+    #raise Exception('No playback session currently running')
 
 
 async def _skip_backward() -> bool:
@@ -129,12 +131,14 @@ async def _skip_backward() -> bool:
         success = await current_session.try_skip_previous_async()
         return success
 
-    raise Exception('No playback session currently running')
+    return False
+    #raise Exception('No playback session currently running')
 
 
 async def _get_media_info():
     """
-    [Internal] Retrieves information about the currently-playing media and returns it as a dictionary
+    [Internal] Retrieves information about the currently-playing media and returns it as a dictionary. Returns an empty
+    dictionary if there is no playback session running.
     """
     sessions = await MediaManager.request_async()
     current_session = sessions.get_current_session()
@@ -147,4 +151,5 @@ async def _get_media_info():
 
         return info_dict
 
-    raise Exception('No playback session currently running')
+    return {}
+    #raise Exception('No playback session currently running')
