@@ -9,6 +9,9 @@ BAUD_RATE = 115200              # Baud rate for the serial communication
 COM_PORT = "COM8"               # TODO: Make this not hardcoded
 RECONNECT_DELAY = 5             # Time between connection attempts, in seconds
 
+# Logging
+TRACE = 5
+
 # Pin number assignments for the Raspberry Pi Pico
 ONBOARD_LED_PIN = 25            # Pin number used for the onboard LED on the Raspberry Pi Pico
 PIXEL_DATA_PIN = 28             # Pin number connected to the neopixel data in line

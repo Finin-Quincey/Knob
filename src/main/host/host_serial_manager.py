@@ -6,6 +6,7 @@ messages.
 """
 
 import serial
+import logging as log
 
 from constants import *
 from serial_manager import SerialManager
@@ -21,10 +22,20 @@ class HostSerialManager(SerialManager):
     def __init__(self):
         super().__init__()
 
+    # Override to add logging
+    def register_handler(self, message_type: type, handler):
+        super().register_handler(message_type, handler)
+        log.debug("Registered new handler for %s", message_type)
+
+    
+    def handle(self, msg, b):
+        log.debug("Received %s (raw bytes: %s)", msg, b)
+        super().handle(msg, b)
 
     ### Context Manager Methods ###
 
     def __enter__(self):
+        log.debug("Attempting to initialise serial connection on %s at %i baud", COM_PORT, BAUD_RATE)
         self.serial_connection = serial.Serial(COM_PORT, BAUD_RATE, timeout = 5)
         return self
 
@@ -33,13 +44,16 @@ class HostSerialManager(SerialManager):
             self.serial_connection.flush()
             self.serial_connection.close()
         except: # Plug was pulled so we can't do anything
-            print("Device disconnected")
+            log.info("Device disconnected")
 
 
     ### Method Implementations ###
 
     def send(self, msg: msp.Message):
-        self.serial_connection.write(msg.encode())
+        b = msg.encode()
+        log.debug("Sending %s (raw bytes: %s)", type(msg), b)
+        self.serial_connection.write(b)
 
     def read(self, n: int):
+        log.log(TRACE, "Attempting to read %i bytes", n)
         return self.serial_connection.read(n) if self.serial_connection.in_waiting else None

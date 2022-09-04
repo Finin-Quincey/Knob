@@ -5,7 +5,9 @@ Module responsible for overall control flow on the host end. Runs on host proces
 """
 
 import time
+import logging as log
 
+from constants import *
 import audio_manager as audio
 import message_protocol as msp
 from host_serial_manager import HostSerialManager
@@ -13,6 +15,14 @@ from serial.serialutil import SerialException
 
 
 ### Setup ###
+
+log.basicConfig(format = "%(asctime)s [%(levelname)s] %(message)s",
+                datefmt = "%d-%m-%Y %I:%M:%S %p",
+                level = log.DEBUG)
+
+log.addLevelName(TRACE, 'TRACE') # TRACE logging level for repetitive messages
+
+log.info("*** Starting volume knob host process ***")
 
 serial_manager = HostSerialManager()
 
@@ -44,6 +54,7 @@ def handle_skip_message(msg: msp.SkipMessage):
 
 
 # Register message handlers
+log.info("Registering message handlers")
 serial_manager.register_handler(msp.VolumeRequestMessage, handle_vol_request)
 serial_manager.register_handler(msp.VolumeMessage, handle_vol_change)
 serial_manager.register_handler(msp.TogglePlaybackMessage, handle_toggle_playback)
@@ -54,13 +65,13 @@ serial_manager.register_handler(msp.SkipMessage, handle_skip_message)
 
 while(True):
 
-    print("Attempting device connection...")
+    log.info("Attempting device connection...")
 
     try:
 
         with serial_manager:
 
-            print("Device connection successful")
+            log.info("Device connection successful")
 
             while(True):
 
@@ -69,6 +80,6 @@ while(True):
                 time.sleep(0.02)
 
     except SerialException:
-        print("Failed to connect to device; retrying")
+        log.info(f"Failed to connect to device; retrying in {RECONNECT_DELAY} seconds")
 
     time.sleep(RECONNECT_DELAY)

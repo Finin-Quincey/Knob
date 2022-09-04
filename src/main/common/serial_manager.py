@@ -47,6 +47,7 @@ class SerialManager():
 
             id = self.read(1) # Try to read a byte from the input
             if not id: return # If there are no bytes waiting, we're done
+            b = [id]
 
             # Reconstruct message object
             msg = msp.msg_from_id(id)
@@ -57,10 +58,18 @@ class SerialManager():
                 if not data_bytes: raise_msg_error(msg, 0)
                 if len(data_bytes) < msg.size: raise_msg_error(msg, len(data_bytes))
                 msg.decode(data_bytes)
+                b = [id, *data_bytes]
 
-            # Call the handler (if it exists) for this type of message to do whatever it needs to do
-            if type(msg) in self.message_handlers:
-                self.message_handlers[type(msg)](msg)
+            self.handle(msg, b)
+
+    
+    def handle(self, msg, b):
+        """
+        Call the handler (if it exists) for this type of message to do whatever it needs to do
+        Subclasses may extend functionality with e.g. logging
+        """
+        if type(msg) in self.message_handlers:
+            self.message_handlers[type(msg)](msg)
 
 
     ### Abstract Methods ###
