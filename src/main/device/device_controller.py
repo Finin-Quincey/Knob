@@ -27,12 +27,17 @@ serial_manager = DeviceSerialManager()
 
 def init():
     serial_manager.register_handler(msp.VolumeMessage, handle_volume_msg)
+    serial_manager.register_handler(msp.VUMessage, handle_vu_msg)
 
 
 ### Handlers ###
 
 def handle_volume_msg(msg: msp.VolumeMessage):
     state_machine.set_state(state_machine.VolumeAdjustState(msg.volume))
+
+
+def handle_vu_msg(msg: msp.VUMessage):
+    leds.display_fraction(msg.left, (180, 1, 1))
 
 
 ### Main Program Loop ###

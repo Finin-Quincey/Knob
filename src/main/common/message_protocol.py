@@ -166,6 +166,32 @@ class SkipMessage(Message):
         self.forward = bool(data.pop(0))
 
 
+class VUMessage(Message):
+    """
+    Message sent to supply the device with stereo VU information.
+    
+    Direction: Host -> Device
+    
+    Additional data:
+    - left (1 byte, representing the left channel volume)
+    - right (1 byte, representing the right channel volume)
+    """
+
+    def __init__(self, left, right):
+        super().__init__(size = 2)
+        self.left = left
+        self.right = right
+
+    def to_bytes(self, data: list) -> list:
+        data.append(int(self.left * 255))
+        data.append(int(self.right * 255))
+        return data
+
+    def from_bytes(self, data: list):
+        self.left = data.pop(0) / 255 # Automatic conversion to float
+        self.right = data.pop(0) / 255
+
+
 ### Functions ###
 
 def register(message_type: type[Message]):
