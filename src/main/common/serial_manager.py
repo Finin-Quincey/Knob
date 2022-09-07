@@ -58,7 +58,9 @@ class SerialManager():
                 if not data_bytes: raise_msg_error(msg, 0)
                 if len(data_bytes) < msg.size: raise_msg_error(msg, len(data_bytes))
                 msg.decode(data_bytes)
-                b = [id, *data_bytes]
+                # b = [id, *data_bytes] # Micropython doesn't support this syntax (yet)
+                b = list(data_bytes)
+                b.insert(id, 0)
 
             self.handle(msg, b)
 
