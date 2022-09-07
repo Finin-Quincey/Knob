@@ -1,5 +1,5 @@
 """
-Audio Manager
+Media Manager
 
 Contains functions for interacting with the system volume and playback controls.
 """
@@ -24,12 +24,12 @@ system_volume = None
 
 def init():
     """
-    Initialises the audio manager. Must be called before using any of the other functions in this module.
+    Initialises the media manager. Must be called before using any of the other functions in this module.
     """
     global system_volume
     global initialised
 
-    log.info("Initialising audio manager")
+    log.info("Initialising media manager")
 
     # Init system volume access with pycaw
     devices = AudioUtilities.GetSpeakers()
@@ -44,7 +44,7 @@ def get_volume() -> float:
     Returns the system volume, expressed as a fraction between 0 (muted) and 1 (max volume)
     """
     log.log(TRACE, "Attempting to get system volume")
-    if not initialised: raise RuntimeError("Audio manager accessed before initialisation!")
+    if not initialised: raise RuntimeError("Media manager accessed before initialisation!")
     return system_volume.GetMasterVolumeLevelScalar() # type: ignore
 
 
@@ -53,7 +53,7 @@ def set_volume(volume: float):
     Sets the system volume to the given value, specified as a fraction between 0 (muted) and 1 (max volume)
     """
     log.log(TRACE, "Attempting to set volume to %.2f", volume)
-    if not initialised: raise RuntimeError("Audio manager accessed before initialisation!")
+    if not initialised: raise RuntimeError("Media manager accessed before initialisation!")
     if volume < 0 or volume > 1: raise ValueError(f"Invalid volume level: {volume}")
     system_volume.SetMasterVolumeLevelScalar(volume, None) # type: ignore
 
@@ -64,7 +64,7 @@ def toggle_playback() -> bool:
     """
     log.log(TRACE, "Attempting to toggle playback")
     # Not actually necessary but included for consistency
-    if not initialised: raise RuntimeError("Audio manager accessed before initialisation!")
+    if not initialised: raise RuntimeError("Media manager accessed before initialisation!")
     return asyncio.run(_toggle_playback())
 
 
@@ -73,7 +73,7 @@ def skip(forward = True) -> bool:
     Attempts to skip to the next (default) or previous track and returns True if successful
     """
     log.log(TRACE, "Attempting to skip %s", "forawrd" if forward else "backward")
-    if not initialised: raise RuntimeError("Audio manager accessed before initialisation!")
+    if not initialised: raise RuntimeError("Media manager accessed before initialisation!")
     if forward: return asyncio.run(_skip_forward())
     else: return asyncio.run(_skip_backward())
 
@@ -83,7 +83,7 @@ def get_media_info() -> dict:
     Returns a dictionary of information about the currently-playing media
     """
     log.log(TRACE, "Attempting to retrieve info for the current media")
-    if not initialised: raise RuntimeError("Audio manager accessed before initialisation!")
+    if not initialised: raise RuntimeError("Media manager accessed before initialisation!")
     return asyncio.run(_get_media_info())
 
 

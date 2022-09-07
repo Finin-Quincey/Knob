@@ -8,7 +8,7 @@ import time
 import logging as log
 
 from constants import *
-import audio_manager as audio
+import media_manager as media
 import message_protocol as msp
 from host_serial_manager import HostSerialManager
 from serial.serialutil import SerialException
@@ -26,14 +26,14 @@ log.info("*** Starting volume knob host process ***")
 
 serial_manager = HostSerialManager()
 
-audio.init()
+media.init()
 
 
 ### Handlers ###
 
 def handle_vol_request(msg: msp.VolumeRequestMessage):
     # Get current system volume
-    vol = audio.get_volume()
+    vol = media.get_volume()
     # Construct a volume message and send it to the device
     reply = msp.VolumeMessage(vol)
     serial_manager.send(reply)
@@ -41,16 +41,16 @@ def handle_vol_request(msg: msp.VolumeRequestMessage):
 
 def handle_vol_change(msg: msp.VolumeMessage):
     # Set system volume to new level
-    audio.set_volume(msg.volume)
+    media.set_volume(msg.volume)
 
 
 def handle_toggle_playback(msg: msp.TogglePlaybackMessage):
-    audio.toggle_playback()
+    media.toggle_playback()
     # TODO: Retrieve playback status and send to device
 
 
 def handle_skip_message(msg: msp.SkipMessage):
-    audio.skip(msg.forward)
+    media.skip(msg.forward)
 
 
 # Register message handlers
