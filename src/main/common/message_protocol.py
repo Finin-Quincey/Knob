@@ -177,7 +177,7 @@ class VUMessage(Message):
     - right (1 byte, representing the right channel volume)
     """
 
-    def __init__(self, left, right):
+    def __init__(self, left = 0.0, right = 0.0):
         super().__init__(size = 2)
         self.left = left
         self.right = right
@@ -228,3 +228,4 @@ register(VolumeMessage)
 register(TogglePlaybackMessage)
 register(PlaybackStatusMessage)
 register(SkipMessage)
+register(VUMessage)

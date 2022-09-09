@@ -6,12 +6,13 @@ Module responsible for overall control flow on the host end. Runs on host proces
 
 import time
 import logging as log
+from serial.serialutil import SerialException
 
 from constants import *
 import media_manager as media
 import message_protocol as msp
 from host_serial_manager import HostSerialManager
-from serial.serialutil import SerialException
+from audio_listener import AudioListener
 
 
 ### Setup ###
@@ -24,8 +25,9 @@ log.addLevelName(TRACE, 'TRACE') # TRACE logging level for repetitive messages
 
 log.info("*** Starting volume knob host process ***")
 
+# Init other modules/classes
 serial_manager = HostSerialManager()
-
+audio = AudioListener()
 media.init()
 
 
@@ -76,6 +78,7 @@ while(True):
             while(True):
 
                 serial_manager.update()
+                audio.update(serial_manager)
 
                 time.sleep(0.02)
 
