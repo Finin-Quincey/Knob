@@ -12,6 +12,9 @@ from constants import *
 from serial_manager import SerialManager
 import message_protocol as msp
 
+MESSAGE_LOG_BLACKLIST = [
+    msp.VUMessage
+]
 
 class HostSerialManager(SerialManager):
     """
@@ -51,7 +54,7 @@ class HostSerialManager(SerialManager):
 
     def send(self, msg: msp.Message):
         b = msg.encode()
-        log.debug("Sending %s (raw bytes: %s)", type(msg), b)
+        if type(msg) not in MESSAGE_LOG_BLACKLIST: log.debug("Sending %s (raw bytes: %s)", type(msg), b)
         self.serial_connection.write(b)
 
     def read(self, n: int):
