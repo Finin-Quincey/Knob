@@ -14,6 +14,17 @@ from pycaw.pycaw import AudioUtilities, IAudioEndpointVolume
 
 from winsdk.windows.media.control import GlobalSystemMediaTransportControlsSessionManager as MediaManager
 
+### Constants ###
+
+# Playback statuses
+CLOSED = 0
+OPENED = 1
+CHANGING = 2
+STOPPED = 3
+PLAYING = 4
+PAUSED = 5
+
+
 ### Globals ###
 
 initialised = False
@@ -58,6 +69,15 @@ def set_volume(volume: float):
     system_volume.SetMasterVolumeLevelScalar(volume, None) # type: ignore
 
 
+def is_playing() -> bool:
+    """
+    Returns True if there is media currently playing, False otherwise
+    """
+    log.log(TRACE, "Attempting to retrieve current playback status")
+    if not initialised: raise RuntimeError("Media manager accessed before initialisation!")
+    return asyncio.run(_is_playing())
+
+
 def toggle_playback() -> bool:
     """
     Attempts to toggle the playback of the current media
@@ -88,6 +108,21 @@ def get_media_info() -> dict:
 
 
 ### Internal Functions ###
+
+async def _is_playing() -> bool:
+    """
+    [Internal] Attempts to retrieve the playback status of the current media, returning True if there is currently media
+    playing and False otherwise
+    """
+    sessions = await MediaManager.request_async()
+    current_session = sessions.get_current_session()
+
+    if current_session:
+        pbinfo = current_session.get_playback_info() # No await because this isn't async
+        return pbinfo.playback_status == PLAYING #type:ignore
+
+    return False # Can't be any media playing if there's no session!
+
 
 async def _toggle_playback() -> bool:
     """
