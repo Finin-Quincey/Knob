@@ -60,7 +60,7 @@ class SerialManager():
                 msg.decode(data_bytes)
                 # b = [id, *data_bytes] # Micropython doesn't support this syntax (yet)
                 b = list(data_bytes)
-                b.insert(id, 0)
+                b.insert(0, id)
 
             self.handle(msg, b)
 
