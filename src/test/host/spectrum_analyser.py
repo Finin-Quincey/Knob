@@ -18,7 +18,7 @@ print([b * FREQ_RES for b in BINS])
 
 prev_samples = np.zeros((AVERAGING_WINDOW, len(BINS)-1))
 
-mic = sc.all_microphones(include_loopback = True)[0]
+mic = sc.get_microphone(sc.default_speaker().id, include_loopback = True)
 
 with mic.recorder(samplerate = SAMPLE_RATE) as rec:
     while True:
