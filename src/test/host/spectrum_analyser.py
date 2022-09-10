@@ -2,6 +2,9 @@ import soundcard as sc
 import numpy as np
 import sys
 
+# Lots of good info on numpy's FFT here:
+# https://stackoverflow.com/questions/8573702/units-of-frequency-when-using-fft-in-numpy
+
 SAMPLE_RATE = 48000
 SAMPLE_FRAMES = 1024
 FREQ_RES = SAMPLE_RATE / SAMPLE_FRAMES
@@ -21,7 +24,9 @@ with mic.recorder(samplerate = SAMPLE_RATE) as rec:
     while True:
         data = rec.record(numframes = SAMPLE_FRAMES)
         mono = np.max(data, axis = 1)
-        freq = np.abs(np.fft.fft(mono))
+        # Apply Hanning window before FFT to combat spectral leakage (see link at top for details)
+        # This really does seem to improve how the signal responds to the music
+        freq = np.abs(np.fft.fft(mono * np.hanning(len(mono))))
         freq_binned, bins = np.histogram(freq, bins = BINS)
         # Shift prev samples up 1, discard the oldest and append the current sample
         prev_samples = np.row_stack([prev_samples[1:, :], freq_binned])
