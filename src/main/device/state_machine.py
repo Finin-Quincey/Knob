@@ -179,6 +179,13 @@ def set_state(new_state):
     _current_state = new_state
 
 
+def is_in_state(state: type[State]):
+    """
+    Returns True if the current state is of the given type.
+    """
+    return isinstance(_current_state, state)
+
+
 def update():
     """
     Called from the main program loop to update the state machine and perform state-specific logic.

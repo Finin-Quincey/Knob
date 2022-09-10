@@ -37,7 +37,8 @@ def handle_volume_msg(msg: msp.VolumeMessage):
 
 
 def handle_vu_msg(msg: msp.VUMessage):
-    leds.set_colour((240 - int(msg.left * 100), 255 - int(msg.left * 230), 200 + int(msg.left * 55)))
+    if state_machine.is_in_state(state_machine.IdleState):
+        leds.set_colour((240 - int(msg.left * 100), 255 - int(msg.left * 230), 200 + int(msg.left * 55)))
 
 
 ### Main Program Loop ###
