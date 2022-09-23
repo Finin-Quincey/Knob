@@ -7,15 +7,14 @@ import matplotlib.pyplot as plt
 # https://stackoverflow.com/questions/8573702/units-of-frequency-when-using-fft-in-numpy
 
 SAMPLE_RATE = 48000
-# TODO: Keep a rolling list of samples to improve fft output resolution and min frequency without slowing refresh rate
 # 2048 isn't bad, it allows us to get down to 20Hz and still have a reasonable refresh rate but is very low-res in the <100Hz region
 SAMPLE_FRAMES = 1024 # Remember that the shorter this window, the greater the minimum detectable frequency
-ROLLING_SAMPLES = 4 # Any less than 4 and parts of the histogram have no data
+ROLLING_SAMPLES = 4 # Any less than 4 and parts of the histogram have no data, too high and we get too much latency
 FREQ_RES = SAMPLE_RATE / SAMPLE_FRAMES
 AVERAGING_WINDOW = 5 # Controls the 'smoothness' of the signal, where 0 is effectively no smoothing
 WINDOW_WEIGHTS = np.array([np.linspace(0, 1, AVERAGING_WINDOW)]).transpose() # Controls how the contribution of previous samples decays over time
 NBINS = 12
-BINS = [(2 * 10**n) for n in np.linspace(1, 3, NBINS+1)] # Logarithmic frequency bins (20Hz - 2kHz seems pretty good)
+BINS = [(2 * 10**n) for n in np.linspace(1, 4, NBINS+1)] # Logarithmic frequency bins (20Hz - 2kHz seems pretty good)
 BLOCK_CHARS = ["\U00002581", "\U00002582", "\U00002583", "\U00002584", "\U00002585", "\U00002586", "\U00002587", "\U00002588"]
 
 #print(" ".join([c*2 for c in BLOCK_CHARS]))
@@ -33,13 +32,13 @@ freq_binned = np.digitize(freq, BINS) # Quantise transform frequencies into bins
 fig = plt.figure()
 ax = fig.add_subplot(211)
 line = ax.semilogx(freq, np.zeros((int((SAMPLE_FRAMES * ROLLING_SAMPLES)/2)+1)))[0]
-plt.xlim([20, 2000])
+plt.xlim([BINS[0], BINS[-1]])
 plt.ylim([0, 20])
 
 ax = fig.add_subplot(212)
 rects = ax.bar(BINS[:-1], [0]*(NBINS), width = [(BINS[i+1] - BINS[i]) * 0.8 for i in range(NBINS)], align = "edge")
 plt.xscale("log")
-plt.xlim([20, 2000])
+plt.xlim([BINS[0], BINS[-1]])
 plt.ylim([0, 20])
 
 plt.show(block = False)
@@ -57,7 +56,7 @@ with mic.recorder(samplerate = SAMPLE_RATE) as rec:
         amps = np.abs(np.fft.rfft(mono * np.hanning(len(mono))))
 
         line.set_ydata(amps)
-        amps_binned = np.array([np.mean(amps[np.where(freq_binned == i)]) for i in range(NBINS)])
+        amps_binned = np.array([np.max(amps[np.where(freq_binned == i+1)]) for i in range(NBINS)])
         amps_binned = np.nan_to_num(amps_binned)
 
         for rect, h in zip(rects, amps_binned):
