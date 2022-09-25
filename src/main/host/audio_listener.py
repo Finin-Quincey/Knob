@@ -10,9 +10,9 @@ Automatically checks for changes to the default speaker and updates the mic acco
 
 import soundcard as sc
 import numpy as np
-import sys
 import logging as log
 
+from constants import *
 from serial_manager import SerialManager
 import message_protocol as msp
 
@@ -40,6 +40,22 @@ class AudioListener():
         """
         Creates a new audio listener
         """
+        
+        self.frequency_resolution = AUDIO_SAMPLE_RATE / AUDIO_SAMPLES_PER_FRAME
+        # Controls how the contribution of previous samples decays over time
+        self.window_weights = np.array([np.linspace(0, 1, AUDIO_AVERAGING_WINDOW)]).transpose()
+        # Logarithmic frequency bins (20Hz - 4kHz seems pretty good)
+        self.frequency_bins = [(2 * 10**n) for n in np.linspace(1, 3.3, SPECTRUM_FREQUENCY_BINS + 1)]
+
+        self.sample_frequencies = np.fft.rfftfreq(AUDIO_SAMPLES_PER_FRAME * ROLLING_FRAMES, 1/AUDIO_SAMPLE_RATE)
+        # Quantise transform frequencies into bins
+        self.freq_bin_indices = np.digitize(self.sample_frequencies, self.frequency_bins)
+
+        # Init arrays
+        self.prev_samples = np.zeros([AUDIO_SAMPLES_PER_FRAME * ROLLING_FRAMES, 2])
+        self.prev_hist_data = np.zeros((AUDIO_AVERAGING_WINDOW, SPECTRUM_FREQUENCY_BINS))
+
+        # Blank variables for later
         self.mic = None
         self.rec = None
 
@@ -78,7 +94,29 @@ class AudioListener():
         if self.rec is None: return
 
         data = self.rec.record(numframes = 1024)
-        left = min(float(np.max(data[:, 0])) * 5.0, 1)
-        right = min(float(np.max(data[:, 1])) * 5.0, 1)
+        
+        ### Simple VU Meter ###
+        
+        # left = min(float(np.max(data[:, 0])) * 5.0, 1)
+        # right = min(float(np.max(data[:, 1])) * 5.0, 1)
 
-        serial_manager.send(msp.VUMessage(left, right))
+        # serial_manager.send(msp.VUMessage(left, right))
+
+        ### Spectrum Analyser ###
+
+        self.prev_samples = np.row_stack([self.prev_samples[AUDIO_SAMPLES_PER_FRAME:, :], data])
+
+        mono = np.max(self.prev_samples, axis = 1)
+        amps = np.abs(np.fft.rfft(mono * np.hanning(len(mono)))) # Apply Hanning window before FFT to combat spectral leakage
+
+        amps_binned = np.array([np.max(amps[np.where(self.freq_bin_indices == i+1)]) for i in range(SPECTRUM_FREQUENCY_BINS)])
+        amps_binned = np.nan_to_num(amps_binned)
+
+        # Shift prev samples up 1, discard the oldest and append the current sample
+        self.prev_hist_data = np.row_stack([self.prev_hist_data[1:, :], amps_binned])
+        # Calculate average across frames
+        freq_avg = np.sum(self.prev_hist_data * self.window_weights, axis = 0) / sum(self.window_weights)
+
+        freq_normalised = [min(v * 0.1, 1) for v in freq_avg] # Normalise to 0-1 range
+
+        serial_manager.send(msp.SpectrumMessage(freq_normalised, freq_normalised))

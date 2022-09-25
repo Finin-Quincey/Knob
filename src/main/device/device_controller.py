@@ -28,6 +28,7 @@ serial_manager = DeviceSerialManager()
 def init():
     serial_manager.register_handler(msp.VolumeMessage, handle_volume_msg)
     serial_manager.register_handler(msp.VUMessage, handle_vu_msg)
+    serial_manager.register_handler(msp.SpectrumMessage, handle_spectrum_msg)
 
 
 ### Handlers ###
@@ -39,6 +40,15 @@ def handle_volume_msg(msg: msp.VolumeMessage):
 def handle_vu_msg(msg: msp.VUMessage):
     if state_machine.is_in_state(state_machine.IdleState):
         leds.set_colour((240 - int(msg.left * 100), 255 - int(msg.left * 230), 200 + int(msg.left * 55)))
+
+
+def handle_spectrum_msg(msg: msp.SpectrumMessage):
+    if state_machine.is_in_state(state_machine.IdleState):
+        for i, v in enumerate(msg.left):
+            leds.set_pixel(PIXEL_COUNT-i-1, (280 - i * 14 - int(v * 100), 255 - int(v * 180), 190 + int(v * 65)))
+        for i, v in enumerate(msg.right):
+            leds.set_pixel(i+1,             (280 - i * 14 - int(v * 100), 255 - int(v * 180), 190 + int(v * 65)))
+        leds._refresh_pixels()
 
 
 ### Main Program Loop ###

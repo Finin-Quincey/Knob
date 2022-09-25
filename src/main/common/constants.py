@@ -32,6 +32,13 @@ ENCODER_DEADZONE = 3            # Rotations of fewer than this many encoder coun
 
 VOLUME_DISPLAY_COLOUR = (0, 0, 255)   # Colour of the pixels when displaying the current volume
 
+# Spectrum analyser
+AUDIO_SAMPLE_RATE = 48000       # Sampling rate for the audio from the loopback microphone
+AUDIO_SAMPLES_PER_FRAME = 1024  # Number of audio samples (per channel) to record each frame (update cycle)
+ROLLING_FRAMES = 4              # Length of the rolling window over which the FFT is computed, expressed as a number of frames
+SPECTRUM_FREQUENCY_BINS = 12    # Number of bins to quantise the frequency spectrum into (half the number of LEDs works best)
+AUDIO_AVERAGING_WINDOW = 5      # Number of previous frames used to compute a moving average spectrum - controls 'smoothness'
+
 # List of all the exceptions in MicroPython (I think - certainly the most common ones anyway)
 EXCEPTIONS = [                  # Byte pattern (reading *anticlockwise*)
     AssertionError,             # 00000000

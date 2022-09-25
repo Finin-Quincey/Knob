@@ -13,7 +13,8 @@ from serial_manager import SerialManager
 import message_protocol as msp
 
 MESSAGE_LOG_BLACKLIST = [
-    msp.VUMessage
+    msp.VUMessage,
+    msp.SpectrumMessage
 ]
 
 class HostSerialManager(SerialManager):

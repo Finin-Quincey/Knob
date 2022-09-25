@@ -48,7 +48,8 @@ class IdleState(State):
     def __init__(self):
         self.idle_start_time = utime.ticks_ms()
         self.initial_encoder_count = device.encoder.count # Used to detect when the knob has been rotated
-        device.leds.set_colour((90, 255, 255)) # Green
+        device.leds.set_colour((0, 0, 0)) # Turn off pixels to begin with
+        #device.leds.set_colour((90, 255, 255)) # Green
 
     def update(self):
 
@@ -107,7 +108,7 @@ class PressedState(State):
     def __init__(self):
         self.hold_start_time = utime.ticks_ms()
         self.initial_encoder_count = device.encoder.count
-        device.leds.set_colour((240, 255, 255)) # Blue
+        #device.leds.set_colour((240, 255, 255)) # Blue
 
     def update(self):
 

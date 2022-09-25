@@ -10,6 +10,8 @@ messages differs between the device (stdin/out) and host (pyserial), this is don
 common, it guarantees that the device and host interpret messages the same way.
 """
 
+from constants import *
+
 ### Globals ###
 MESSAGE_REGISTRY = [] # List of message types, index is the message ID
 
@@ -179,17 +181,44 @@ class VUMessage(Message):
 
     def __init__(self, left = 0.0, right = 0.0):
         super().__init__(size = 2)
-        self.left = left
+        self.left  = left
         self.right = right
 
     def to_bytes(self, data: list) -> list:
-        data.append(int(self.left * 255))
+        data.append(int(self.left  * 255))
         data.append(int(self.right * 255))
         return data
 
     def from_bytes(self, data: list):
-        self.left = data.pop(0) / 255 # Automatic conversion to float
+        self.left  = data.pop(0) / 255 # Automatic conversion to float
         self.right = data.pop(0) / 255
+
+
+class SpectrumMessage(Message):
+    """
+    Message sent to supply the device with stereo spectrum information.
+    
+    Direction: Host -> Device
+    
+    Additional data:
+    - left (12 bytes, representing the left channel frequency spectrum)
+    - right (12 bytes, representing the right channel frequency spectrum)
+    """
+
+    def __init__(self, left = None, right = None):
+        super().__init__(size = SPECTRUM_FREQUENCY_BINS * 2)
+        self.left =  [] if left  is None else left
+        self.right = [] if right is None else right
+
+    def to_bytes(self, data: list) -> list:
+        for v in self.left:  data.append(int(v * 255))
+        for v in self.right: data.append(int(v * 255))
+        return data
+
+    def from_bytes(self, data: list):
+        self.data = data
+        self.left  = [v/255 for v in data[:SPECTRUM_FREQUENCY_BINS]]
+        self.right = [v/255 for v in data[SPECTRUM_FREQUENCY_BINS:]]
 
 
 ### Functions ###
@@ -229,3 +258,4 @@ register(TogglePlaybackMessage)
 register(PlaybackStatusMessage)
 register(SkipMessage)
 register(VUMessage)
+register(SpectrumMessage)
