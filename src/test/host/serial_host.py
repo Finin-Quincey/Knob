@@ -10,8 +10,8 @@ COM_PORT = "COM8"
 # Timeout is in seconds
 ser = serial.Serial(COM_PORT, BAUD_RATE, timeout = 5)#, parity = serial.PARITY_EVEN, rtscts = 1)
 
-msg = msp.VolumeMessage(volume = 0.5)
-n = ser.write(msg.encode())
+#msg = msp.VolumeMessage(volume = 0.5)
+#n = ser.write(msg.encode())
 
 # This essentially allows you to debug the serial comms!
 # (ampy run won't work for debugging serial since it requires full use of the serial port itself)
