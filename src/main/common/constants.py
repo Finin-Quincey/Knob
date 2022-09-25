@@ -33,21 +33,21 @@ ENCODER_DEADZONE = 3            # Rotations of fewer than this many encoder coun
 VOLUME_DISPLAY_COLOUR = (0, 0, 255)   # Colour of the pixels when displaying the current volume
 
 # List of all the exceptions in MicroPython (I think - certainly the most common ones anyway)
-EXCEPTIONS = [
-    AssertionError,
-    AttributeError,
-    ImportError,
-    IndexError,
-    KeyboardInterrupt,
-    KeyError,
-    MemoryError,
-    NameError,
-    NotImplementedError,
-    OSError,
-    StopIteration,
-    SyntaxError,
-    SystemExit,
-    TypeError,
-    ValueError,
-    ZeroDivisionError
+EXCEPTIONS = [                  # Byte pattern (reading *anticlockwise*)
+    AssertionError,             # 00000000
+    AttributeError,             # 10000000
+    ImportError,                # 01000000
+    IndexError,                 # 11000000
+    KeyboardInterrupt,          # 00100000
+    KeyError,                   # 10100000
+    MemoryError,                # 01100000
+    NameError,                  # 11100000
+    NotImplementedError,        # 00010000
+    OSError,                    # 10010000
+    StopIteration,              # 01010000
+    SyntaxError,                # 11010000
+    SystemExit,                 # 00110000
+    TypeError,                  # 10110000
+    ValueError,                 # 01110000
+    ZeroDivisionError           # 11110000
 ]
