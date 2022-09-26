@@ -62,6 +62,7 @@ def run():
 
     except Exception as e:
         leds.set_colour((0, 255, 255))
+        leds.update()
         utime.sleep(1)
         for i, ex_type in enumerate(EXCEPTIONS):
             if isinstance(e, ex_type):
