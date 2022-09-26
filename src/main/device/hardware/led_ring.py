@@ -112,6 +112,21 @@ class LedRing:
         if on_pixels < self.led_count: self.set_pixel(on_pixels, (hsv[0], hsv[1], hsv[2] * remainder))
 
 
+    def display_dir_indicator(self, direction: float, hue: int, sat: int):
+        """
+        Lights up one side of the LED ring in a faded pattern to indicate left or right according to the given direction,
+        where right is positive. The magnitude (between 0 and 1) of the given value controls the brightness of the effect.
+        """
+        for i in range(self.led_count):
+            # For negative direction, flip the pixel indices about the central plane
+            index = i if direction > 0 else self.led_count - i - 1
+            # Brightness is controlled by a quadratic with roots at 0 and 12, meaning those LEDs will always be off
+            q = index * (index - self.led_count/2) / -(self.led_count/4)**2 # Division flips and scales it so maximum is 1
+            # Scale by the magnitude of the input and convert to 0-255
+            v = int(255 * max(0, min(abs(direction), 1) * q)) # Don't let brightness go below zero or above 1
+            self.set_pixel(i, (hue, sat, v)) # Use the original, un-flipped index when we actually set the LED colours
+
+
     def display_bytes(self, b: bytes):
         """
         Debug function that can display up to 3 bytes in binary around the led ring.

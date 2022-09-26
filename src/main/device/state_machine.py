@@ -146,17 +146,21 @@ class SkippingState(State):
     def __init__(self, initial_encoder_count):
         self.idle_time = 0
         self.initial_encoder_count = initial_encoder_count
-        device.leds.set_colour((300, 255, 255)) # Magenta
+        #device.leds.set_colour((300, 255, 255)) # Magenta
 
     def update(self):
 
-        if not device.encoder.is_switch_pressed(): # Button released
+        delta = encoder_delta(self.initial_encoder_count, device.encoder.count)
 
-            delta = encoder_delta(self.initial_encoder_count, device.encoder.count)
+        device.leds.display_dir_indicator(delta / 20, 200, 180)
+
+        if not device.encoder.is_switch_pressed(): # Button released
             
             if abs(delta) > ENCODER_DEADZONE:
                 device.serial_manager.send(msp.SkipMessage(delta > 0))
+                device.leds.display_dir_indicator(2.5 if delta > 0 else -2.5, 0, 0)
             
+            device.leds.crossfade(LED_TRANSITION_DURATION)
             set_state(IdleState())
             return
 
