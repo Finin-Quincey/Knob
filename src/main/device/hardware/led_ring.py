@@ -140,7 +140,7 @@ class LedRing:
         return (self.offset - index) % self.led_count
 
 
-    def _apply_gamma(self, hsv) -> tuple[int]:
+    def _apply_gamma(self, hsv) -> tuple[int, int, int]:
         """
         Applies gamma correction to the given hsv colour and returns it as an rgb colour.
         """
