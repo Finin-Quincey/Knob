@@ -46,9 +46,19 @@ class LedRing:
         LedRing._next_pio += 1
         self.led_count = led_count
         self.offset = offset
+        self._transition_start = 0
+        self._transition_duration = 0
+        self._current_brightness_norm = 1
 
 
     def update(self):
+        
+        if self._transition_duration > 0:
+            elapsed = utime.ticks_ms() - self._transition_start
+            self._current_brightness_norm = min(abs(elapsed / self._transition_duration * 2 - 1), 1)
+            if self._current_brightness_norm == 1:
+                # Transition finished, reset variables
+                self._transition_duration = 0
 
         self._refresh_pixels()
 
@@ -58,14 +68,14 @@ class LedRing:
         Sets the pixel at the given index to the given colour, with gamma correction applied.
         An index of 0 corresponds to the pixel above the USB; indices increase moving clockwise.
         """
-        self._pixels.set_pixel(self._to_pixel_index(index), self._apply_gamma(hsv), how_bright = MAX_BRIGHTNESS)
+        self._pixels.set_pixel(self._to_pixel_index(index), self._apply_gamma(hsv), how_bright = self._get_current_brightness())
 
 
     def set_colour(self, hsv):
         """
         Sets all pixels to the given colour, with gamma correction applied.
         """
-        self._pixels.fill(self._apply_gamma(hsv), how_bright = MAX_BRIGHTNESS)
+        self._pixels.fill(self._apply_gamma(hsv), how_bright = self._get_current_brightness())
         self._refresh_pixels()
 
 
@@ -102,9 +112,19 @@ class LedRing:
                     if pixel_index >= self.led_count: break # Run out of pixels!
                     c = [0, 0, 0]
                     c[n] = 255 if (val >> i) & 0b00000001 else 10 # Make the zeros dim rather than completely off
-                    self._pixels.set_pixel(pixel_index, c, MAX_BRIGHTNESS)
+                    self._pixels.set_pixel(pixel_index, c, MAX_BRIGHTNESS) # Don't modulate brightness for debug stuff
 
         self._refresh_pixels()
+
+    
+    def transition_black(self, t: int):
+        """
+        Starts a fade-through-black transition. The LED ring will fade its brightness to zero and back up to full again
+        over t milliseconds. Users may continue to set the colour during this time without affecting the transition.
+        """
+        if self._transition_duration != 0: return # Ignore multiple requests
+        self._transition_start = utime.ticks_ms()
+        self._transition_duration = t
 
     
     ### Internal methods ###
@@ -137,3 +157,10 @@ class LedRing:
         # Apply gamma correction to the value channel before converting to RGB
         # This should give natural-looking results whilst being very cheap and simple to implement
         return self._pixels.colorHSV(int(hsv[0]/360 * 65535), hsv[1], GAMMA_LOOKUP[int(hsv[2])])
+
+    
+    def _get_current_brightness(self) -> float:
+        """
+        Returns the current brightness of the LED ring, taking transitions into account.
+        """
+        return self._current_brightness_norm * MAX_BRIGHTNESS

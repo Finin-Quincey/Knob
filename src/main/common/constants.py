@@ -31,6 +31,7 @@ LIKE_HOLD_TIME = 2000           # Time in ms that the button must be held for in
 ENCODER_DEADZONE = 3            # Rotations of fewer than this many encoder counts will be ignored (80 = 1 rev.)
 
 VOLUME_DISPLAY_COLOUR = (0, 0, 255)   # Colour of the pixels when displaying the current volume
+LED_TRANSITION_DURATION = 350   # Duration of LED transition effects, in ms
 
 # Spectrum analyser
 AUDIO_SAMPLE_RATE = 48000       # Sampling rate for the audio from the loopback microphone
