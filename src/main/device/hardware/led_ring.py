@@ -144,6 +144,9 @@ class LedRing:
 
 
     def is_transition_active(self) -> bool:
+        """
+        Returns True if the LED ring currently has a transition (crossfade) active, False otherwise
+        """
         return self._transition_duration > 0
 
     
