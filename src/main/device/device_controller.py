@@ -34,7 +34,7 @@ def init():
 ### Handlers ###
 
 def handle_volume_msg(msg: msp.VolumeMessage):
-    leds.crossfade(LED_TRANSITION_DURATION)
+    leds.crossfade(200)
     state_machine.set_state(state_machine.VolumeAdjustState(msg.volume))
 
 
