@@ -29,6 +29,8 @@ mic = sc.get_microphone(sc.default_speaker().id, include_loopback = True)
 freq = np.fft.rfftfreq(SAMPLE_FRAMES * ROLLING_SAMPLES, 1/SAMPLE_RATE)
 freq_binned = np.digitize(freq, BINS) # Quantise transform frequencies into bins
 
+max_amps_binned = np.zeros(NBINS)
+
 fig = plt.figure()
 ax = fig.add_subplot(211)
 line = ax.semilogx(freq, np.zeros((int((SAMPLE_FRAMES * ROLLING_SAMPLES)/2)+1)))[0]
@@ -36,7 +38,8 @@ plt.xlim([BINS[0], BINS[-1]])
 plt.ylim([0, 20])
 
 ax = fig.add_subplot(212)
-rects = ax.bar(BINS[:-1], [0]*(NBINS), width = [(BINS[i+1] - BINS[i]) * 0.8 for i in range(NBINS)], align = "edge")
+max_rects = ax.bar(BINS[:-1], [0]*(NBINS), width = [(BINS[i+1] - BINS[i]) * 0.8 for i in range(NBINS)], align = "edge", color = "lightskyblue")
+rects     = ax.bar(BINS[:-1], [0]*(NBINS), width = [(BINS[i+1] - BINS[i]) * 0.8 for i in range(NBINS)], align = "edge", color = "mediumblue")
 plt.xscale("log")
 plt.xlim([BINS[0], BINS[-1]])
 plt.ylim([0, 20])
@@ -45,7 +48,7 @@ plt.show(block = False)
 
 with mic.recorder(samplerate = SAMPLE_RATE) as rec:
 
-    while True:
+    while plt.get_fignums():
         
         data = rec.record(numframes = SAMPLE_FRAMES)
         prev_samples = np.row_stack([prev_samples[SAMPLE_FRAMES:, :], data])
@@ -59,7 +62,12 @@ with mic.recorder(samplerate = SAMPLE_RATE) as rec:
         amps_binned = np.array([np.max(amps[np.where(freq_binned == i+1)]) for i in range(NBINS)])
         amps_binned = np.nan_to_num(amps_binned)
 
+        max_amps_binned = np.max(np.row_stack([max_amps_binned, amps_binned]), axis = 0)
+
         for rect, h in zip(rects, amps_binned):
+            rect.set_height(h)
+
+        for rect, h in zip(max_rects, max_amps_binned):
             rect.set_height(h)
 
         fig.canvas.draw()
@@ -73,3 +81,7 @@ with mic.recorder(samplerate = SAMPLE_RATE) as rec:
         freq_levels = [int(min(x/10, 1) * (len(BLOCK_CHARS)-1)) for x in freq_avg]# * BINS[:-1]]
         sys.stdout.write("\033[K")
         print("     " + " ".join([BLOCK_CHARS[i]*2 for i in freq_levels]), end = "\r") # Spaces to avoid the caret
+
+
+print("\n")
+print(max_amps_binned)
