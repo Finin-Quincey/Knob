@@ -46,16 +46,10 @@ class LedRing:
         LedRing._next_pio += 1
         self.led_count = led_count
         self.offset = offset
-        self.effect = None
-        self._effect_start = 0
 
 
     def update(self):
-         
-        if self.effect is None:
-            return
-        
-        self.effect.update(self._pixels, utime.ticks_ms() - self._effect_start)
+
         self._refresh_pixels()
 
 
@@ -112,11 +106,6 @@ class LedRing:
 
         self._refresh_pixels()
 
-
-    def start_effect(self, effect):
-        self._pixels.clear()
-        self.effect = effect
-        self._effect_start = utime.ticks_ms()
     
     ### Internal methods ###
     
@@ -148,37 +137,3 @@ class LedRing:
         # Apply gamma correction to the value channel before converting to RGB
         # This should give natural-looking results whilst being very cheap and simple to implement
         return self._pixels.colorHSV(int(hsv[0]/360 * 65535), hsv[1], GAMMA_LOOKUP[int(hsv[2])])
-
-
-class Effect:
-    """
-    Base class for lighting effects. Instances of this class should be stateless, although constant references to external,
-    stateful objects are acceptable where the lighting effect depends on some aspect of the device state. For example, the
-    volume display effect is able to access the current volume via a (constant) reference to the device controller class.
-    """
-
-    def __init__(self):
-        """
-        Creates a new lighting effect.
-        """
-        pass # Nothing here yet
-
-
-    def update(self, pixels: Neopixel, millis: int):
-        """
-        Called from the LED ring to update the lighting effect. This method should set the colour of each pixel by calling
-        the relevant methods on the provided Neopixel object. The millis argument is the time in ms since the effect started.
-        """
-        pass # To be overridden by subclasses
-
-
-class VolumeEffect(Effect):
-    """
-    Lighting effect that displays the current volume around the LED ring.
-    """
-
-    def __init__(self, hsv):
-        self.hsv = hsv
-
-    def update(self, pixels: Neopixel, millis: int):
-        pass # TODO
