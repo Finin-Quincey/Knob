@@ -81,11 +81,10 @@ class VolumeAdjustState(State):
 
         if device.encoder.count == self.prev_count:
             elapsed = utime.ticks_ms() - self.idle_start_time
-            if elapsed > VOL_DISPLAY_HOLD_TIME - LED_TRANSITION_DURATION/2:
-                device.leds.transition_black(LED_TRANSITION_DURATION)
-                if elapsed > VOL_DISPLAY_HOLD_TIME:
-                    set_state(IdleState()) # Knob stationary for long enough, return to idle
-                    return
+            if elapsed > VOL_DISPLAY_HOLD_TIME:
+                device.leds.crossfade(LED_TRANSITION_DURATION)
+                set_state(IdleState()) # Knob stationary for long enough, return to idle
+                return
         else:
             # Calculate change in encoder count since the last update, wrapping to the -180 to 180 degree range
             delta = encoder_delta(self.prev_count, device.encoder.count)
@@ -120,6 +119,8 @@ class PressedState(State):
         if not device.encoder.is_switch_pressed(): # Button released
         
             if not like_time_exceeded:
+                device.leds.set_colour((0, 0, 255))
+                device.leds.crossfade(LED_TRANSITION_DURATION)
                 device.serial_manager.send(msp.TogglePlaybackMessage()) # Short press: send play/pause message
 
             set_state(IdleState()) # Return to idle as soon as the button is released, regardless of hold duration

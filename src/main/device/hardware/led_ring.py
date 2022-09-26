@@ -49,16 +49,28 @@ class LedRing:
         self._transition_start = 0
         self._transition_duration = 0
         self._current_brightness_norm = 1
+        self._led_states = [(0, 0, 0)] * self.led_count
+        self._led_snapshot = [(0, 0, 0)] * self.led_count
 
 
     def update(self):
+
+        f = 1
         
-        if self._transition_duration > 0:
+        if self.is_transition_active():
+
             elapsed = utime.ticks_ms() - self._transition_start
-            self._current_brightness_norm = min(abs(elapsed / self._transition_duration * 2 - 1), 1)
-            if self._current_brightness_norm == 1:
+            f = min(elapsed / self._transition_duration, 1)
+
+            if f == 1:
                 # Transition finished, reset variables
                 self._transition_duration = 0
+
+        for i, led in enumerate(self._led_states):
+            # The following line mixes the current state with the snapshot state
+            hsv = [int(a * f + b * (1 - f)) for a, b in zip(led, self._led_snapshot[i])] # type: ignore
+            # Actually set the pixels
+            self._pixels.set_pixel(self._to_pixel_index(i), self._apply_gamma(hsv), how_bright = self._get_current_brightness())
 
         self._refresh_pixels()
 
@@ -68,15 +80,18 @@ class LedRing:
         Sets the pixel at the given index to the given colour, with gamma correction applied.
         An index of 0 corresponds to the pixel above the USB; indices increase moving clockwise.
         """
-        self._pixels.set_pixel(self._to_pixel_index(index), self._apply_gamma(hsv), how_bright = self._get_current_brightness())
+        self._led_states[index] = hsv
 
 
     def set_colour(self, hsv):
         """
         Sets all pixels to the given colour, with gamma correction applied.
         """
-        self._pixels.fill(self._apply_gamma(hsv), how_bright = self._get_current_brightness())
-        self._refresh_pixels()
+        self._led_states = [hsv] * self.led_count # How neat is that?
+
+
+    def clear(self):
+        self.set_colour((0, 0, 0))
 
 
     def display_fraction(self, fraction: float, hsv, smoothing = 1.0):
@@ -84,7 +99,7 @@ class LedRing:
         Lights up the given fraction of the ring (clockwise from the back), with optional smoothing.
         """
         # TODO: Implement smoothing
-        self._pixels.clear()
+        self.clear()
 
         f = fraction * self.led_count
         on_pixels = int(f)
@@ -95,7 +110,6 @@ class LedRing:
 
         # For a fraction of 1, all the pixels are already on so no need for this
         if on_pixels < self.led_count: self.set_pixel(on_pixels, (hsv[0], hsv[1], hsv[2] * remainder))
-        self._refresh_pixels()
 
 
     def display_bytes(self, b: bytes):
@@ -116,15 +130,21 @@ class LedRing:
 
         self._refresh_pixels()
 
-    
-    def transition_black(self, t: int):
+
+    def crossfade(self, t: int):
         """
-        Starts a fade-through-black transition. The LED ring will fade its brightness to zero and back up to full again
-        over t milliseconds. Users may continue to set the colour during this time without affecting the transition.
+        Starts a crossfade transition. The LED ring will take a 'snapshot' of its state when this method is called and
+        crossfade between that and whatever new state is set over t milliseconds. Users may continue to set the colour
+        during this time without affecting the transition.
         """
-        if self._transition_duration != 0: return # Ignore multiple requests
+        if self.is_transition_active(): return # Ignore multiple requests
         self._transition_start = utime.ticks_ms()
         self._transition_duration = t
+        self._led_snapshot = self._led_states.copy() # Shallow copy should be okay since we never modify hsv components in here
+
+
+    def is_transition_active(self) -> bool:
+        return self._transition_duration > 0
 
     
     ### Internal methods ###

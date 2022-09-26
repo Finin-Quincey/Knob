@@ -34,6 +34,7 @@ def init():
 ### Handlers ###
 
 def handle_volume_msg(msg: msp.VolumeMessage):
+    leds.crossfade(LED_TRANSITION_DURATION)
     state_machine.set_state(state_machine.VolumeAdjustState(msg.volume))
 
 
@@ -48,7 +49,6 @@ def handle_spectrum_msg(msg: msp.SpectrumMessage):
             leds.set_pixel(PIXEL_COUNT-i-1, (280 - i * 14 - int(v * 100), 255 - int(v * 180), 190 + int(v * 65)))
         for i, v in enumerate(msg.right):
             leds.set_pixel(i+1,             (280 - i * 14 - int(v * 100), 255 - int(v * 180), 190 + int(v * 65)))
-        leds._refresh_pixels()
 
 
 ### Main Program Loop ###
