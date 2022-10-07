@@ -48,7 +48,6 @@ class LedRing:
         self.offset = offset
         self._transition_start = 0
         self._transition_duration = 0
-        self._current_brightness_norm = 1
         self._led_states = [(0, 0, 0)] * self.led_count
         self._led_snapshot = [(0, 0, 0)] * self.led_count
 
@@ -70,7 +69,7 @@ class LedRing:
             # The following line mixes the current state with the snapshot state
             hsv = [int(a * f + b * (1 - f)) for a, b in zip(led, self._led_snapshot[i])] # type: ignore
             # Actually set the pixels
-            self._pixels.set_pixel(self._to_pixel_index(i), self._apply_gamma(hsv), how_bright = self._get_current_brightness())
+            self._pixels.set_pixel(self._to_pixel_index(i), self._apply_gamma(hsv), how_bright = MAX_BRIGHTNESS)
 
         self._refresh_pixels()
 
@@ -195,10 +194,3 @@ class LedRing:
         # Apply gamma correction to the value channel before converting to RGB
         # This should give natural-looking results whilst being very cheap and simple to implement
         return self._pixels.colorHSV(int(hsv[0]/360 * 65535), hsv[1], GAMMA_LOOKUP[int(hsv[2])])
-
-    
-    def _get_current_brightness(self) -> float:
-        """
-        Returns the current brightness of the LED ring, taking transitions into account.
-        """
-        return self._current_brightness_norm * MAX_BRIGHTNESS
