@@ -42,14 +42,14 @@ for pid, exe_path, _ in pywinauto.application._process_get_modules_wmi():
     if not exe_path or "Spotify.exe" not in exe_path: continue
     
     # Use the lower-level API to dig out the necessary info
-    elements = pywinauto.findwindows.find_elements(backend = "uia", process = pid)
+    elements = pywinauto.findwindows.find_elements(backend = "win32", process = pid)
 
     # elements should be empty for background processes, so this should filter out everything except the UI
     if not elements: continue
 
     print("Found Spotify UI")
 
-    app = pywinauto.application.Application(backend = "uia")
+    app = pywinauto.application.Application(backend = "win32")
     app.connect(process = pid, top_level_only = False)
 
     print("Connected to Spotify application")
@@ -57,7 +57,8 @@ for pid, exe_path, _ in pywinauto.application._process_get_modules_wmi():
     w = app.top_window()
     print(w.window_text())
 
-    w.type_keys("{SPACE}")
+    #w.type_keys("{SPACE}")
+    w.send_keystrokes("{SPACE}")
 
 #time.sleep(10) 
 
