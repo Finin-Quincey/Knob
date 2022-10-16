@@ -33,7 +33,7 @@ media.init()
 
 ### Handlers ###
 
-def handle_vol_request(msg: msp.VolumeRequestMessage):
+def handle_vol_request_msg(msg: msp.VolumeRequestMessage):
     # Get current system volume
     vol = media.get_volume()
     # Construct a volume message and send it to the device
@@ -41,26 +41,26 @@ def handle_vol_request(msg: msp.VolumeRequestMessage):
     serial_manager.send(reply)
 
 
-def handle_vol_change(msg: msp.VolumeMessage):
+def handle_vol_change_msg(msg: msp.VolumeMessage):
     # Set system volume to new level
     media.set_volume(msg.volume)
 
 
-def handle_toggle_playback(msg: msp.TogglePlaybackMessage):
+def handle_toggle_playback_msg(msg: msp.TogglePlaybackMessage):
     media.toggle_playback()
     # TODO: Retrieve playback status and send to device
 
 
-def handle_skip_message(msg: msp.SkipMessage):
+def handle_skip_msg(msg: msp.SkipMessage):
     media.skip(msg.forward)
 
 
 # Register message handlers
 log.info("Registering message handlers")
-serial_manager.register_handler(msp.VolumeRequestMessage, handle_vol_request)
-serial_manager.register_handler(msp.VolumeMessage, handle_vol_change)
-serial_manager.register_handler(msp.TogglePlaybackMessage, handle_toggle_playback)
-serial_manager.register_handler(msp.SkipMessage, handle_skip_message)
+serial_manager.register_handler(msp.VolumeRequestMessage, handle_vol_request_msg)
+serial_manager.register_handler(msp.VolumeMessage, handle_vol_change_msg)
+serial_manager.register_handler(msp.TogglePlaybackMessage, handle_toggle_playback_msg)
+serial_manager.register_handler(msp.SkipMessage, handle_skip_msg)
 
 
 ### Main Program Loop ###
