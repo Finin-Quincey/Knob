@@ -91,7 +91,7 @@ class VolumeRequestMessage(Message):
 
 class VolumeMessage(Message):
     """
-    Message sent to update the current volume level.
+    Message sent to update the device with the current volume level.
     
     Direction: Both (H -> D upon request, D -> H when knob turned)
     
@@ -126,7 +126,7 @@ class TogglePlaybackMessage(Message):
 
 class PlaybackStatusMessage(Message):
     """
-    Message sent to update the current play/pause status.
+    Message sent to update the device with the current play/pause status.
     
     Direction: Host -> Device
     
