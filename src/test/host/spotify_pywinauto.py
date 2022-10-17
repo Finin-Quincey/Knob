@@ -3,13 +3,13 @@ import time
 import win32gui, win32process
 
 # See https://stackoverflow.com/questions/48723263/cannot-find-exe-with-pywinautos-find-windowtitle-program-exe
-def get_window_pid(title):
-    """
-    Finds the process ID associated with the given process name (.exe filename)
-    """
-    hwnd = win32gui.FindWindow(None, title)
-    threadid, pid = win32process.GetWindowThreadProcessId(hwnd)
-    return pid
+# def get_window_pid(title):
+#     """
+#     Finds the process ID associated with the given process name (.exe filename)
+#     """
+#     hwnd = win32gui.FindWindow(None, title)
+#     threadid, pid = win32process.GetWindowThreadProcessId(hwnd)
+#     return pid
 
 # pid = get_window_pid("Spotify.exe")
 
@@ -17,7 +17,7 @@ def get_window_pid(title):
 
 # print(w.window_text())
 
-SPOTIFY_PATH = r"C:\Users\qncyf\AppData\Roaming\Spotify\Spotify.exe"
+# SPOTIFY_PATH = r"C:\Users\qncyf\AppData\Roaming\Spotify\Spotify.exe"
 
 # Right... lots to unpack here so bear with me
 
@@ -49,16 +49,35 @@ for pid, exe_path, _ in pywinauto.application._process_get_modules_wmi():
 
     print("Found Spotify UI")
 
-    app = pywinauto.application.Application(backend = "win32")
+    app = pywinauto.application.Application(backend = "uia")
     app.connect(process = pid, top_level_only = False)
 
     print("Connected to Spotify application")
 
+    # controls = app.windows(control_type = "Button")
+    # for control in controls:
+    #     print(control)
+
     w = app.top_window()
     print(w.window_text())
 
-    #w.type_keys("{SPACE}")
-    w.send_keystrokes("{SPACE}")
+    controls_bar = app.Pane.Document.child_window(title = "", control_type = "Group", ctrl_index = 2)
+    now_playing_group = controls_bar.child_window(title_re = "Now playing.*", control_type = "Group")
+    like_btn = now_playing_group.child_window(control_type = "Button") # The like button is the only control of type Button
+
+    # Before this line, like_btn is just a *specification* for the button, i.e. an object describing the button - we haven't
+    # actually tried to find it yet. This is actually done using the wrapper_object() method, which is normally called
+    # implicitly (lazily) when access is actually needed. However, this operation is expensive (takes about 1s to complete),
+    # so by calling it explicitly once we avoid having to wait 1s every time we need to query the button text
+    like_btn = like_btn.wrapper_object()
+
+    print("Located like button")
+
+    while(True):
+        time.sleep(1)
+        print("Current song liked" if "Remove" in like_btn.window_text() else "Current song not liked")
+
+    #w.send_keystrokes("%+b")
 
 #time.sleep(10) 
 
