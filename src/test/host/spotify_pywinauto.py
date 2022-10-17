@@ -69,13 +69,13 @@ for pid, exe_path, _ in pywinauto.application._process_get_modules_wmi():
     # actually tried to find it yet. This is actually done using the wrapper_object() method, which is normally called
     # implicitly (lazily) when access is actually needed. However, this operation is expensive (takes about 1s to complete),
     # so by calling it explicitly once we avoid having to wait 1s every time we need to query the button text
-    like_btn = like_btn.wrapper_object()
+    like_btn = like_btn.wrapper_object() # <class 'pywinauto.controls.uia_controls.ButtonWrapper'>
 
     print("Located like button")
 
     while(True):
         time.sleep(1)
-        print("Current song liked" if "Remove" in like_btn.window_text() else "Current song not liked")
+        print("Current song liked" if like_btn.get_toggle_state() else "Current song not liked")
 
     #w.send_keystrokes("%+b")
 
