@@ -110,6 +110,7 @@ class PressedState(State):
     def __init__(self):
         self.hold_start_time = utime.ticks_ms()
         self.initial_encoder_count = device.encoder.count
+        self.like_msg_sent = False
         #device.leds.set_colour((240, 255, 255)) # Blue
 
     def update(self):
@@ -129,9 +130,9 @@ class PressedState(State):
         # Long press: send like/unlike message
         # This happens immediately after the like hold time, not when the button is ultimately released, because otherwise
         # the user would get no feedback as to when they have held it for long enough until after they release the button
-        if like_time_exceeded:
-            pass
-            #dsm.send(LikeMessage()) # TODO
+        if like_time_exceeded and not self.like_msg_sent:
+            device.serial_manager.send(msp.LikeMessage())
+            self.like_msg_sent = True
         
         if abs(encoder_delta(self.initial_encoder_count, device.encoder.count)) > ENCODER_DEADZONE:
             set_state(SkippingState(self.initial_encoder_count))

@@ -221,6 +221,40 @@ class SpectrumMessage(Message):
         self.right = [v/255 for v in data[SPECTRUM_FREQUENCY_BINS:]]
 
 
+class LikeMessage(Message):
+    """
+    Message sent like/unlike the current song.
+    
+    Direction: Device -> Host
+    
+    Additional data: None
+    """
+    def __init__(self):
+        super().__init__() # No additional data required
+
+
+class LikeStatusMessage(Message):
+    """
+    Message sent to update the device with the liked status of the current song.
+    
+    Direction: Host -> Device
+    
+    Additional data:
+    - liked (1 byte, where 0 is not liked and 1 is liked)
+    """
+
+    def __init__(self, liked = False):
+        super().__init__(size = 1)
+        self.liked = liked
+
+    def to_bytes(self, data: list) -> list:
+        data.append(int(self.liked))  # type: ignore
+        return data
+
+    def from_bytes(self, data: list):
+        self.liked = bool(data.pop(0))
+
+
 ### Functions ###
 
 def register(message_type: type[Message]):
@@ -259,3 +293,5 @@ register(PlaybackStatusMessage)
 register(SkipMessage)
 register(VUMessage)
 register(SpectrumMessage)
+register(LikeMessage)
+register(LikeStatusMessage)

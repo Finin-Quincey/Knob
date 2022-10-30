@@ -31,6 +31,8 @@ LIKE_HOLD_TIME = 2000           # Time in ms that the button must be held for in
 ENCODER_DEADZONE = 3            # Rotations of fewer than this many encoder counts will be ignored (80 = 1 rev.)
 
 VOLUME_DISPLAY_COLOUR = (0, 0, 255)   # Colour of the pixels when displaying the current volume
+LIKE_COLOUR = (141, 219, 214)   # Colour of the LED flash effect when liking the current song
+UNLIKE_COLOUR = (141, 219, 100) # Colour of the LED flash effect when un-liking the current song
 LED_TRANSITION_DURATION = 350   # Duration of LED transition effects, in ms
 
 # Spectrum analyser

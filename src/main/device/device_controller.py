@@ -29,6 +29,7 @@ def init():
     serial_manager.register_handler(msp.VolumeMessage, handle_volume_msg)
     serial_manager.register_handler(msp.VUMessage, handle_vu_msg)
     serial_manager.register_handler(msp.SpectrumMessage, handle_spectrum_msg)
+    serial_manager.register_handler(msp.LikeStatusMessage, handle_like_status_msg)
 
 
 ### Handlers ###
@@ -49,6 +50,12 @@ def handle_spectrum_msg(msg: msp.SpectrumMessage):
             leds.set_pixel(PIXEL_COUNT-i-1, (280 - i * 14 - int(v * 100), 255 - int(v * 180), 190 + int(v * 65)))
         for i, v in enumerate(msg.right):
             leds.set_pixel(i+1,             (280 - i * 14 - int(v * 100), 255 - int(v * 180), 190 + int(v * 65)))
+
+
+def handle_like_status_msg(msg: msp.LikeStatusMessage):
+    if state_machine.is_in_state(state_machine.PressedState):
+        leds.set_colour(LIKE_COLOUR if msg.liked else UNLIKE_COLOUR)
+        leds.crossfade(LED_TRANSITION_DURATION)
 
 
 ### Main Program Loop ###

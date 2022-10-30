@@ -13,6 +13,7 @@ import media_manager as media
 import message_protocol as msp
 from host_serial_manager import HostSerialManager
 from audio_listener import AudioListener
+import spotify_hooks as spotify
 
 
 ### Setup ###
@@ -29,7 +30,7 @@ log.info("*** Starting volume knob host process ***")
 serial_manager = HostSerialManager()
 audio = AudioListener()
 media.init()
-
+spotify.init()
 
 ### Handlers ###
 
@@ -55,12 +56,21 @@ def handle_skip_msg(msg: msp.SkipMessage):
     media.skip(msg.forward)
 
 
+def handle_like_msg(msg: msp.LikeMessage):
+    # Spotify takes a short time to respond so it's easier to reply first with the opposite of the
+    # previous liked status and then do the actual toggling
+    reply = msp.LikeStatusMessage(not spotify.is_current_song_liked())
+    spotify.toggle_liked_status()
+    serial_manager.send(reply)
+
+
 # Register message handlers
 log.info("Registering message handlers")
 serial_manager.register_handler(msp.VolumeRequestMessage, handle_vol_request_msg)
 serial_manager.register_handler(msp.VolumeMessage, handle_vol_change_msg)
 serial_manager.register_handler(msp.TogglePlaybackMessage, handle_toggle_playback_msg)
 serial_manager.register_handler(msp.SkipMessage, handle_skip_msg)
+serial_manager.register_handler(msp.LikeMessage, handle_like_msg)
 
 
 ### Main Program Loop ###
