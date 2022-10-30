@@ -71,7 +71,7 @@ class VolumeAdjustState(State):
         self.volume = initial_volume
         self.idle_start_time = utime.ticks_ms()
         self.prev_count = device.encoder.count # Used to detect when the knob has been rotated
-        device.leds.display_fraction(self.volume, VOLUME_DISPLAY_COLOUR)
+        device.leds.display_fraction(self.volume, VOL_DISPLAY_COLOUR)
 
     def update(self):
 
@@ -98,7 +98,7 @@ class VolumeAdjustState(State):
 
             self.idle_start_time = utime.ticks_ms() # Knob moved, reset idle timer
         
-        device.leds.display_fraction(self.volume, VOLUME_DISPLAY_COLOUR) # Update displayed volume
+        device.leds.display_fraction(self.volume, VOL_DISPLAY_COLOUR) # Update displayed volume
         self.prev_count = device.encoder.count
 
 
