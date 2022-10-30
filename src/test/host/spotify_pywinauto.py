@@ -50,7 +50,7 @@ for pid, exe_path, _ in pywinauto.application._process_get_modules_wmi():
     print("Found Spotify UI")
 
     app = pywinauto.application.Application(backend = "uia")
-    app.connect(process = pid, top_level_only = False)
+    app.connect(process = pid, top_level_only = False, visible_only = False)
 
     print("Connected to Spotify application")
 
@@ -58,8 +58,12 @@ for pid, exe_path, _ in pywinauto.application._process_get_modules_wmi():
     # for control in controls:
     #     print(control)
 
-    w = app.top_window()
+    w = app.window(visible_only = False).wrapper_object()
     print(w.window_text())
+
+    print(w.get_show_state())
+
+    break
 
     controls_bar = app.Pane.Document.child_window(title = "", control_type = "Group", ctrl_index = 2)
     now_playing_group = controls_bar.child_window(title_re = "Now playing.*", control_type = "Group")
@@ -73,11 +77,11 @@ for pid, exe_path, _ in pywinauto.application._process_get_modules_wmi():
 
     print("Located like button")
 
+    #w.send_keystrokes("%+b")
+
     while(True):
         time.sleep(1)
         print("Current song liked" if like_btn.get_toggle_state() else "Current song not liked")
-
-    #w.send_keystrokes("%+b")
 
 #time.sleep(10) 
 
