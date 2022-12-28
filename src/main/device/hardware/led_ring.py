@@ -90,6 +90,9 @@ class LedRing:
 
 
     def clear(self):
+        """
+        Turns all pixels off (sets them to black).
+        """
         self.set_colour((0, 0, 0))
 
 
