@@ -63,8 +63,6 @@ for pid, exe_path, _ in pywinauto.application._process_get_modules_wmi():
 
     print(w.get_show_state())
 
-    break
-
     controls_bar = app.Pane.Document.child_window(title = "", control_type = "Group", ctrl_index = 2)
     now_playing_group = controls_bar.child_window(title_re = "Now playing.*", control_type = "Group")
     like_btn = now_playing_group.child_window(control_type = "Button") # The like button is the only control of type Button
