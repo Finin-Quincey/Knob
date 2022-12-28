@@ -29,6 +29,13 @@ class State:
         """
         pass
 
+    def should_display_audio(self) -> bool:
+        """
+        Called to determine whether the device should display audio visualisations in the current state.
+        This need not return a constant; this behaviour may change within a single state.
+        """
+        return False # Default to not displaying audio visualisations
+
     def update(self):
         """
         Called each update cycle to perform state-specific logic.
@@ -50,6 +57,9 @@ class IdleState(State):
         self.initial_encoder_count = device.encoder.count # Used to detect when the knob has been rotated
         device.leds.set_colour((0, 0, 0)) # Turn off pixels to begin with
         #device.leds.set_colour((90, 255, 255)) # Green
+
+    def should_display_audio(self):
+        return True # Always display audio when idle
 
     def update(self):
 
@@ -112,6 +122,9 @@ class PressedState(State):
         self.initial_encoder_count = device.encoder.count
         self.like_msg_sent = False
         #device.leds.set_colour((240, 255, 255)) # Blue
+
+    def should_display_audio(self):
+        return True # Always display audio when pressed for now
 
     def update(self):
 
@@ -194,6 +207,13 @@ def is_in_state(state: type[State]):
     Returns True if the current state is of the given type.
     """
     return isinstance(_current_state, state)
+
+
+def get_current_state() -> State:
+    """
+    Returns the current state object.
+    """
+    return _current_state
 
 
 def update():
