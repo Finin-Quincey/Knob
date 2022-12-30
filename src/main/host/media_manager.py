@@ -133,7 +133,6 @@ async def _toggle_playback() -> bool:
 
     if current_session:
         success = await current_session.try_toggle_play_pause_async()
-        # TODO: Make this get the playback status and return that instead
         return success
 
     return False
