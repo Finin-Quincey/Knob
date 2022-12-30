@@ -94,7 +94,11 @@ class AudioListener():
 
         if self.rec is None: return
 
-        data = self.rec.record(numframes = 1024)
+        try:
+            data = self.rec.record(numframes = 1024)
+        except RuntimeError as e:
+            log.info("Unable to record audio (error code %s)", e)
+            return
         
         ### Simple VU Meter ###
         
