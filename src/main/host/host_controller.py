@@ -49,7 +49,7 @@ def handle_vol_change_msg(msg: msp.VolumeMessage):
 
 def handle_toggle_playback_msg(msg: msp.TogglePlaybackMessage):
     media.toggle_playback()
-    # TODO: Retrieve playback status and send to device
+    # Not currently sending a reply since we're using the same animation for play and pause
 
 
 def handle_skip_msg(msg: msp.SkipMessage):
