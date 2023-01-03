@@ -2,6 +2,8 @@
 
 A USB volume knob powered by Raspberry Pi Pico, featuring a stylish minimalist look, tactile & intuitive controls, RGB audio visualisation, and integration with the Spotify desktop app.
 
+![](images/device.jpg)
+
 ## 🔊 Specs
 ### Hardware
 - Raspberry Pi Pico Rev3
