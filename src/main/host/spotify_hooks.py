@@ -95,6 +95,7 @@ def locate_like_btn():
     minimised = window.is_minimized()
     if minimised: window.restore()
     
+    # TODO: Something about this spec means it doesn't work when showing the queue in spotify (any others?)
     controls_bar = app.Pane.Document.child_window(title = "", control_type = "Group", ctrl_index = 2)
     now_playing_group = controls_bar.child_window(title_re = "Now playing.*", control_type = "Group")
     like_btn = now_playing_group.child_window(control_type = "Button") # The like button is the only control of type Button
@@ -107,8 +108,8 @@ def locate_like_btn():
     # so by calling it explicitly once we avoid having to wait 1s every time we need to query the button text
     try:
         like_btn = like_btn.wrapper_object() # <class 'pywinauto.controls.uia_controls.ButtonWrapper'>
-    except pywinauto.MatchError:
-        log.warn("Unable to locate like button in Spotify window; has the UI been updated?")
+    except (pywinauto.MatchError, pywinauto.ElementNotFoundError) as e:
+        log.warn("Unable to locate like button in Spotify window; has the UI been updated?\n%s", e)
         return
 
     log.debug("Successfully located like button in Spotify window")
