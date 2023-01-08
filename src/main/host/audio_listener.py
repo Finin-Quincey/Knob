@@ -67,8 +67,18 @@ class AudioListener():
 
     def __exit__(self, exc_type, exc_value, traceback):
         # Finalise everything when the program exits for whatever reason
+        self._finalise_recorder(exc_type, exc_value, traceback)
+
+
+    def _finalise_recorder(self, exc_type = None, exc_value = None, traceback = None):
+        """
+        Manually calls __exit__ on the mic recorder
+        """
         if self.rec is not None:
-            self.rec.__exit__(exc_type, exc_value, traceback) # Finalise recorder context manager manually
+            try:
+                self.rec.__exit__(exc_type, exc_value, traceback)
+            except RuntimeError:
+                self.rec = None # Delete the recorder object if it errors
 
 
     def check_mic_change(self):
@@ -81,7 +91,7 @@ class AudioListener():
             # Get the loopback mic for the default (i.e. current) speakers
             self.mic = sc.get_microphone(speaker_id, include_loopback = True)
             log.info("Microphone updated to %s", self.mic)
-            if self.rec is not None: self.rec.__exit__(None, None, None)
+            self._finalise_recorder() # Manually exit recorder before reinitialising
             self.rec = self.mic.recorder(samplerate = 48000)
             self.rec.__enter__()
 
