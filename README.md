@@ -1,4 +1,4 @@
-![](images/logo.png)
+<p align="center"><img src=https://github.com/Finin-Quincey/Knob/blob/main/images/logo.png></p>
 
 A USB volume knob powered by Raspberry Pi Pico, featuring a stylish minimalist look, tactile & intuitive controls, RGB audio visualisation, and integration with the Spotify desktop app.
 
