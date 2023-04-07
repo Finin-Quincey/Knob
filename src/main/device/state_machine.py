@@ -133,8 +133,8 @@ class PressedState(State):
         if not device.encoder.is_switch_pressed(): # Button released
         
             if not like_time_exceeded:
-                device.leds.set_colour((0, 0, 255))
-                device.leds.crossfade(LED_TRANSITION_DURATION)
+                device.leds.set_colour(VOL_DISPLAY_COLOUR)
+                device.leds.crossfade(LED_ANIMATION_DURATION)
                 device.serial_manager.send(msp.TogglePlaybackMessage()) # Short press: send play/pause message
 
             set_state(IdleState()) # Return to idle as soon as the button is released, regardless of hold duration
@@ -150,6 +150,29 @@ class PressedState(State):
         if abs(encoder_delta(self.initial_encoder_count, device.encoder.count)) > ENCODER_DEADZONE:
             set_state(SkippingState(self.initial_encoder_count))
             return # Good practice even when it's the end of the method
+        
+
+class UnlikeAnimationState(State):
+    """
+    Class representing the state of the device while the unlike animation is playing.
+    """
+
+    def __init__(self):
+        self.start_time = utime.ticks_ms()
+
+    def update(self):
+
+        progress = (utime.ticks_ms() - self.start_time) / LED_ANIMATION_DURATION
+
+        if progress > 1 and not device.encoder.is_switch_pressed(): # Button released
+            set_state(IdleState())
+            device.leds.crossfade(LED_TRANSITION_DURATION)
+            return
+        
+        for i in range(PIXEL_COUNT):
+            brightness = min(1, max(0, abs(i/PIXEL_COUNT - 0.5) * 2 + 0.2 - progress**0.5) * 3) # sqrt progress so it starts fast
+            hsv = (UNLIKE_COLOUR[0], UNLIKE_COLOUR[1], UNLIKE_COLOUR[2] * brightness)
+            device.leds.set_pixel(i, hsv)
 
 
 class SkippingState(State):
@@ -174,7 +197,7 @@ class SkippingState(State):
                 device.serial_manager.send(msp.SkipMessage(delta > 0))
                 device.leds.display_dir_indicator(2.5 if delta > 0 else -2.5, 0, 0)
             
-            device.leds.crossfade(LED_TRANSITION_DURATION)
+            device.leds.crossfade(LED_ANIMATION_DURATION)
             set_state(IdleState())
             return
 

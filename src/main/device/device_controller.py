@@ -41,21 +41,24 @@ def handle_volume_msg(msg: msp.VolumeMessage):
 
 def handle_vu_msg(msg: msp.VUMessage):
     if state_machine.get_current_state().should_display_audio():
-        leds.set_colour((240 - int(msg.left * 100), 255 - int(msg.left * 230), 200 + int(msg.left * 55)))
+        leds.set_colour((240 - int(msg.left * 100), 255 - int(msg.left * 230), (200 + int(msg.left * 55)) * AUDIO_VISUALISER_BRIGHTNESS))
 
 
 def handle_spectrum_msg(msg: msp.SpectrumMessage):
     if state_machine.get_current_state().should_display_audio():
         for i, v in enumerate(msg.left):
-            leds.set_pixel(PIXEL_COUNT-i-1, (280 - i * 14 - int(v * 100), 255 - int(v * 180), 190 + int(v * 65)))
+            leds.set_pixel(PIXEL_COUNT-i-1, (280 - i * 14 - int(v * 100), 255 - int(v * 180), (190 + int(v * 65)) * AUDIO_VISUALISER_BRIGHTNESS))
         for i, v in enumerate(msg.right):
-            leds.set_pixel(i+1,             (280 - i * 14 - int(v * 100), 255 - int(v * 180), 190 + int(v * 65)))
+            leds.set_pixel(i+1,             (280 - i * 14 - int(v * 100), 255 - int(v * 180), (190 + int(v * 65)) * AUDIO_VISUALISER_BRIGHTNESS))
 
 
 def handle_like_status_msg(msg: msp.LikeStatusMessage):
     if state_machine.is_in_state(state_machine.PressedState):
-        leds.set_colour(LIKE_COLOUR if msg.liked else UNLIKE_COLOUR)
-        leds.crossfade(LED_TRANSITION_DURATION)
+        if msg.liked:
+            leds.set_colour(LIKE_COLOUR)
+            leds.crossfade(LED_ANIMATION_DURATION)
+        else:
+            state_machine.set_state(state_machine.UnlikeAnimationState())
 
 
 ### Main Program Loop ###
