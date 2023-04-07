@@ -4,6 +4,17 @@ Host Controller
 Module responsible for overall control flow on the host end. Runs on host process start.
 """
 
+# TODO
+# - Catch errors and problems due to lack of spotify, windows being minimised, lost connection to audio device, etc.
+# - Add config file
+# - Move gamma correction into neopixel PIOs (this will fix the high discretisation at the dim end)
+# - Improve encoder read robustness
+# - Output log to file
+# - Sort out volume compensation for audio visualisations
+# - Implement switchable audio visualisations
+# - Potentially add success/fail messages so we don't give the user feedback when it didn't work
+# - Package up and get running automatically as a background process
+
 import time
 import logging as log
 from serial.serialutil import SerialException

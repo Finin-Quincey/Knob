@@ -128,6 +128,9 @@ async def _toggle_playback() -> bool:
     """
     [Internal] Attempts to toggle the playback status of the current media and returns True if successful
     """
+    # FIXME:
+    # Exception has occurred: OSError
+    # [WinError -2147418110] Call was canceled by the message filter
     sessions = await MediaManager.request_async()
     current_session = sessions.get_current_session()
 
