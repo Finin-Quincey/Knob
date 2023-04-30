@@ -11,6 +11,7 @@ import pywinauto.controls.hwndwrapper
 
 ### Constants ###
 SPOTIFY_EXE_NAME = "Spotify.exe"
+ESCAPE_KEY = "{ESC}"
 LIKE_KEYBOARD_SHORTCUT = "%+b"
 
 ### Globals ###
@@ -135,5 +136,9 @@ def toggle_liked_status():
     # Although we have access to the like button, like_btn.toggle() brings the window to the front so we need to use this instead
     # Also, it's slightly more robust in the case where we connected to spotify but were unable to find the like button
     minimised = window.is_minimized()
+    # If we're currently typing in a text field (e.g. search), keystrokes are sent to the text field rather than the main app
+    # Sending an esc key first restores focus to the main window, allowing it to receive the shortcut as normal
+    # If we weren't in a text field, this does nothing
+    window.send_keystrokes(ESCAPE_KEY)
     window.send_keystrokes(LIKE_KEYBOARD_SHORTCUT)
     if minimised: window.minimize() # Re-minimise the window if it was minimised previously
