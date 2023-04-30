@@ -95,10 +95,11 @@ def locate_like_btn():
     minimised = window.is_minimized()
     if minimised: window.restore()
     
-    # TODO: Something about this spec means it doesn't work when showing the queue in spotify (any others?)
-    controls_bar = app.Pane.Document.child_window(title = "", control_type = "Group", ctrl_index = 2)
-    now_playing_group = controls_bar.child_window(title_re = "Now playing.*", control_type = "Group")
-    like_btn = now_playing_group.child_window(control_type = "Button") # The like button is the only control of type Button
+    #controls_bar = app.Pane.Document.child_window(title_re = "^$", control_type = "Group")#, ctrl_index = 2)
+
+    # pywinauto child window search is recursive, so the only reason to use multiple stages is to resolve ambiguity
+    now_playing_group = app.Pane.Document.child_window(title_re = "Now playing.*", control_type = "Group")
+    like_btn = now_playing_group.child_window(title = "Remove from Your Library", control_type = "Button")
     
     if minimised: window.minimize() # Re-minimise window if it was minimised before
 
