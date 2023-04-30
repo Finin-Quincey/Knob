@@ -55,7 +55,7 @@ class IdleState(State):
     def __init__(self):
         self.idle_start_time = utime.ticks_ms()
         self.initial_encoder_count = device.encoder.count # Used to detect when the knob has been rotated
-        device.leds.set_colour((0, 0, 0)) # Turn off pixels to begin with
+        device.leds.clear() # Turn off pixels to begin with
         #device.leds.set_colour((90, 255, 255)) # Green
 
     def should_display_audio(self):
