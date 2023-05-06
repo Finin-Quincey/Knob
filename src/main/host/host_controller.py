@@ -14,6 +14,7 @@ Module responsible for overall control flow on the host end. Runs on host proces
 # - Implement switchable audio visualisations
 # - Potentially add success/fail messages so we don't give the user feedback when it didn't work
 # - Package up and get running automatically as a background process
+# - System tray icon/menu
 
 import time
 import logging as log
