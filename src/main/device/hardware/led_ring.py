@@ -10,6 +10,19 @@ MAX_BRIGHTNESS = 20
 
 # Lookup table for gamma-corrected 8-bit values
 # https://learn.adafruit.com/led-tricks-gamma-correction/the-quick-fix
+# Unfortunately this introduces significant quantisation at low brightness
+# values, which is a hardware limitation resulting from the 8-bit PWM in
+# the LED drivers. However, we can disguise / work around it somewhat by:
+# - Making volume display white to avoid hue artefacts at low brightness
+# - Fading multiple LEDs at once so the effect is smoothed out with the
+#   help of the diffuser
+# In fact, a lot of the apparent quantisation is not due to the LEDs at
+# all, but due to the encoder, which only has 80 effective levels per
+# revolution compared to approx. 18 * 24 = 432 for the LEDs.
+# There is also a hardware solution: simply add a tinted layer that dims
+# the light from the LEDs, allowing an increased brightness range (and
+# hence better resolution) to be used for the same end result. However,
+# with the other adjustments this is unlikely to be necessary.
 GAMMA_LOOKUP = [
       0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
       0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  1,  1,  1,

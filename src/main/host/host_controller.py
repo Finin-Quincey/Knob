@@ -7,7 +7,6 @@ Module responsible for overall control flow on the host end. Runs on host proces
 # TODO
 # - Catch errors and problems due to lack of spotify, windows being minimised, lost connection to audio device, etc.
 # - Add config file
-# - Move gamma correction into neopixel PIOs (this will fix the high discretisation at the dim end)
 # - Improve encoder read robustness
 # - Output log to file
 # - Sort out volume compensation for audio visualisations
