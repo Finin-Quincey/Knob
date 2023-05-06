@@ -38,6 +38,8 @@ def attempt_spotify_connection():
     global app, app32
     global window
 
+    pywinauto.warnings.simplefilter("ignore", category = UserWarning) # Shut up and do your job, pywinauto
+
     log.info("Attempting to connect to Spotify")
 
     # Get a list of running processes, as tuples of the form (pid, executable path, command line)
