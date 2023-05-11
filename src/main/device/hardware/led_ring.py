@@ -109,22 +109,39 @@ class LedRing:
         self.set_colour((0, 0, 0))
 
 
-    def display_fraction(self, fraction: float, hsv, smoothing = 1.0):
+    def display_fraction(self, fraction: float, hsv, smoothing = 1.5):
         """
         Lights up the given fraction of the ring (clockwise from the back), with optional smoothing.
         """
-        # TODO: Implement smoothing
         self.clear()
 
         f = fraction * self.led_count
-        on_pixels = int(f)
-        remainder = f - on_pixels
 
-        for i in range(on_pixels):
-            self.set_pixel(i, hsv)
+        # Construct a (piecewise) function that is constant at 1 for some distance, followed by a ramp down
+        # to 0, then constant zero, such that the function crosses 0.5 at f:
+        #
+        #   y               s
+        #   |             |<->|
+        # 1-|--------------._ |
+        # 0-|             |  `--------------
+        #   |-------------|---|-----------|-- x
+        #   0        f-0.5s  f+0.5s      23
+        #
+        # If you work through the maths on this, it comes out as y = 0.5 + (f - x) / s, clamped to 0-1
+        
+        for i in range(self.led_count):
+            y = max(0, min(1, 0.5 + (f - i) / smoothing))
+            self.set_pixel(i, (hsv[0], hsv[1], hsv[2] * y))
 
-        # For a fraction of 1, all the pixels are already on so no need for this
-        if on_pixels < self.led_count: self.set_pixel(on_pixels, (hsv[0], hsv[1], hsv[2] * remainder))
+        # Old method
+        # on_pixels = int(f)
+        # remainder = f - on_pixels
+
+        # for i in range(on_pixels):
+        #     self.set_pixel(i, hsv)
+
+        # # For a fraction of 1, all the pixels are already on so no need for this
+        # if on_pixels < self.led_count: self.set_pixel(on_pixels, (hsv[0], hsv[1], hsv[2] * remainder))
 
 
     def display_dir_indicator(self, direction: float, hue: int, sat: int):
