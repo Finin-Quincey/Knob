@@ -102,7 +102,7 @@ def locate_like_btn():
 
     # pywinauto child window search is recursive, so the only reason to use multiple stages is to resolve ambiguity
     now_playing_group = app.Pane.Document.child_window(title_re = "Now playing.*", control_type = "Group")
-    like_btn = now_playing_group.child_window(title = "Remove from Your Library", control_type = "Button")
+    like_btn = now_playing_group.child_window(title_re = "(Save to|Remove from) Your Library", control_type = "Button")
     
     if minimised: window.minimize() # Re-minimise window if it was minimised before
 
