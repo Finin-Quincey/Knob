@@ -133,7 +133,7 @@ class PressedState(State):
         if not device.encoder.is_switch_pressed(): # Button released
         
             if not like_time_exceeded:
-                device.leds.set_colour(VOL_DISPLAY_COLOUR)
+                device.leds.set_colour(PLAY_PAUSE_COLOUR)
                 device.leds.crossfade(LED_ANIMATION_DURATION)
                 device.serial_manager.send(msp.TogglePlaybackMessage()) # Short press: send play/pause message
 

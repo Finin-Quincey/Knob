@@ -21,18 +21,23 @@ ENCODER_SW_PIN = 18                 # Pin number connected to the encoder switch
 
 # Encoder
 ENCODER_PPR = 20                    # Encoder pulses per revolution (1 pulse = 4 counts)
+ENCODER_DEADZONE = 3                # Rotations of fewer than this many encoder counts will be ignored (80 = 1 rev.)
 
 # Neopixel ring
 PIXEL_COUNT = 24                    # Number of LEDs in the neopixel ring
 PIXEL_OFFSET = 20                   # Index of the first pixel clockwise from the back of the device (the one over the USB is last)
 
+# Controls
 VOL_DISPLAY_HOLD_TIME = 2000        # Time in ms after the knob stops turning that the volume will continue being displayed
 LIKE_HOLD_TIME = 1500               # Time in ms that the button must be held for in order to like/unlike a song
-ENCODER_DEADZONE = 3                # Rotations of fewer than this many encoder counts will be ignored (80 = 1 rev.)
 
+# Colours
 VOL_DISPLAY_COLOUR = (0, 0, 220)    # Colour of the pixels when displaying the current volume
+PLAY_PAUSE_COLOUR = (0, 0, 220)     # Colour of the LED flash effect when toggling playback state
 LIKE_COLOUR = (120, 219, 255)       # Colour of the LED flash effect when liking the current song
-UNLIKE_COLOUR = (120, 219, 200)     # Colour of the LED flash effect when un-liking the current song
+UNLIKE_COLOUR = (120, 219, 200)     # Colour of the LED effect when un-liking the current song
+
+# Animations
 LED_TRANSITION_DURATION = 350       # Duration of LED transition effects, in ms
 LED_ANIMATION_DURATION = 600        # Duration of LED animation effects (like, play/pause, etc.), in ms
 AUDIO_VISUALISER_BRIGHTNESS = 0.7   # Normalised brightness of the audio visualiser animation
