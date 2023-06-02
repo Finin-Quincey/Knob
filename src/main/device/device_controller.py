@@ -45,6 +45,7 @@ def handle_vu_msg(msg: msp.VUMessage):
 
 
 def handle_spectrum_msg(msg: msp.SpectrumMessage):
+    if state_machine.is_in_state(state_machine.StartupState): state_machine.set_state(state_machine.IdleState()) # TODO: Temporary, remove
     if state_machine.get_current_state().should_display_audio():
         for i, v in enumerate(msg.left):
             leds.set_pixel(PIXEL_COUNT-i-1, (280 - i * 14 - int(v * 100), 255 - int(v * 180), (190 + int(v * 65)) * AUDIO_VISUALISER_BRIGHTNESS))

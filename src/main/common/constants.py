@@ -32,6 +32,7 @@ VOL_DISPLAY_HOLD_TIME = 2000        # Time in ms after the knob stops turning th
 LIKE_HOLD_TIME = 1500               # Time in ms that the button must be held for in order to like/unlike a song
 
 # Colours
+STARTUP_COLOUR = (0, 0, 220)        # Colour of the LED animation during startup
 VOL_DISPLAY_COLOUR = (0, 0, 220)    # Colour of the pixels when displaying the current volume
 PLAY_PAUSE_COLOUR = (0, 0, 220)     # Colour of the LED flash effect when toggling playback state
 LIKE_COLOUR = (120, 219, 255)       # Colour of the LED flash effect when liking the current song
@@ -41,6 +42,8 @@ UNLIKE_COLOUR = (120, 219, 200)     # Colour of the LED effect when un-liking th
 LED_TRANSITION_DURATION = 350       # Duration of LED transition effects, in ms
 LED_ANIMATION_DURATION = 600        # Duration of LED animation effects (like, play/pause, etc.), in ms
 AUDIO_VISUALISER_BRIGHTNESS = 0.7   # Normalised brightness of the audio visualiser animation
+STARTUP_ANIMATION_PERIOD = 1500     # Period of startup animation, in ms
+STARTUP_ANIMATION_FADE_LENGTH = 12  # Number of pixels lit at once in the startup animation
 
 # Spectrum analyser
 AUDIO_SAMPLE_RATE = 48000           # Sampling rate for the audio from the loopback microphone

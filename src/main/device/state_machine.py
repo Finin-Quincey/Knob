@@ -43,6 +43,23 @@ class State:
         pass
 
 
+class StartupState(State):
+    """
+    Class representing the state of the device before connection has been established with the host program.
+    """
+    def __init__(self):
+        device.leds.clear()
+        device.leds.set_colour((180, 1, 1))
+
+    def update(self):
+        
+        rotation = int(PIXEL_COUNT * utime.ticks_ms() / STARTUP_ANIMATION_PERIOD) % PIXEL_COUNT
+
+        for i in range(PIXEL_COUNT):
+            brightness = max(0, 1 - ((rotation - i) % PIXEL_COUNT) / STARTUP_ANIMATION_FADE_LENGTH)
+            device.leds.set_pixel(i, hsv = (STARTUP_COLOUR[0], STARTUP_COLOUR[1], STARTUP_COLOUR[2] * brightness))
+
+
 class IdleState(State):
     """
     Class representing the state of the device when idle, i.e. the knob is at rest and not pressed down.
@@ -53,7 +70,6 @@ class IdleState(State):
     # Edit: Then again, now we're creating state objects each time we could feasibly store a prev_state to go back to...
 
     def __init__(self):
-        self.idle_start_time = utime.ticks_ms()
         self.initial_encoder_count = device.encoder.count # Used to detect when the knob has been rotated
         device.leds.clear() # Turn off pixels to begin with
         #device.leds.set_colour((90, 255, 255)) # Green
@@ -204,7 +220,7 @@ class SkippingState(State):
 
 ### Globals ###
 
-_current_state = IdleState()
+_current_state = StartupState()
 
 def encoder_delta(old_count: int, new_count: int) -> int:
     """
