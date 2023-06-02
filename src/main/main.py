@@ -34,6 +34,10 @@ menu = pystray.Menu(
     ),
     pystray.Menu.SEPARATOR,
     pystray.MenuItem(
+        text = "Development Mode",
+        action = lambda icon, item: print(f"{item} clicked")
+    ),
+    pystray.MenuItem(
         text = "Restart",
         action = lambda icon, item: print(f"{item} clicked")
     ),
