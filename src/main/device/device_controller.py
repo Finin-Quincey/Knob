@@ -87,5 +87,3 @@ def update_loop():
     serial_manager.update()
     leds.update()
     state_machine.update()
-
-    utime.sleep_ms(40)
