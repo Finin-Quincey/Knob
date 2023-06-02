@@ -14,6 +14,8 @@ Module responsible for overall control flow on the host end. Runs on host proces
 # - Potentially add success/fail messages so we don't give the user feedback when it didn't work
 # - Package up and get running automatically as a background process
 # - System tray icon/menu
+# - Lock to specific app
+# - Startup animation
 
 import time
 import logging as log
