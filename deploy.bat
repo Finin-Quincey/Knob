@@ -4,7 +4,7 @@ for /F %%i in ('ampy ls') do (
     echo Deleting %%i
     ampy rm %%i
 )
-for %%d in (.\\src\\main, .\\lib) do (
+for %%d in (.\\src\\main\\common, .\\src\\main\\device, .\\lib\\device) do (
     pushd %%d
     for /R %%f in (*.py) do (
         echo Writing %%f
