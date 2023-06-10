@@ -6,7 +6,12 @@ File containing various global constants used by the host software, device softw
 
 # Serial comms
 BAUD_RATE = 115200                  # Baud rate for the serial communication
-COM_PORT = "COM8"                   # TODO: Make this not hardcoded
+COM_PORT = "auto"                   # COM port that the device is connected to, or "auto" to identify automatically
+USB_VID = 11914                     # USB vendor ID for Raspberry Pi
+USB_PID = 5                         # USB product ID for Pico running MicroPython firmware
+DEVICE_ID = 100                     # Unique device identifier to distinguish it from other Picos
+BROADCAST_INTERVAL = 1000           # Time between sending device ID messages, in ms
+CONNECTION_TIMEOUT = 5              # Serial connection timeout, in seconds
 RECONNECT_DELAY = 5                 # Time between connection attempts, in seconds
 
 # Logging

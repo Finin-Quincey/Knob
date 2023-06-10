@@ -5,7 +5,10 @@ Class that handles serial communication on the host end. Deals with setting up t
 messages.
 """
 
+import time
 import serial
+import serial.tools.list_ports as list_ports
+from serial.serialutil import SerialException
 import logging as log
 
 from constants import *
@@ -39,9 +42,28 @@ class HostSerialManager(SerialManager):
     ### Context Manager Methods ###
 
     def __enter__(self):
-        log.debug("Attempting to initialise serial connection on %s at %i baud", COM_PORT, BAUD_RATE)
-        self.serial_connection = serial.Serial(COM_PORT, BAUD_RATE, timeout = 5)
-        return self
+        log.debug("Checking serial ports")
+        if COM_PORT == "auto":
+            for port in list_ports.comports():
+                if port.vid == USB_VID and port.pid == USB_PID: # USB identifiers match, this should be a pico
+                    log.debug("Found RP2040 device on port %s", port.name)
+                    log.debug("Attempting to initialise serial connection on %s at %i baud", port.name, BAUD_RATE)
+                    self.serial_connection = serial.Serial(port.name, BAUD_RATE, timeout = CONNECTION_TIMEOUT)
+                    bytes = self.serial_connection.read(1) # Wait to receive ID or timeout
+                    if len(bytes) > 0: # If we received something
+                        log.debug("Received device ID: %d", int(bytes[0]))
+                        if bytes[0] == DEVICE_ID: # Check ID matches
+                            return self # We are done here
+                    else:
+                        log.debug("Timed out waiting for device ID")
+                    self.serial_connection.flush()
+                    self.serial_connection.close()
+                    # Otherwise try the next pico, if there is one
+        else:
+            log.debug("Attempting to initialise serial connection on %s at %i baud", port.name, BAUD_RATE)
+            self.serial_connection = serial.Serial(COM_PORT, BAUD_RATE, timeout = CONNECTION_TIMEOUT)
+            return self
+        raise SerialException("Unable to identify volume knob over USB")
 
     def __exit__(self, exc_type, exc_value, traceback):
         try:

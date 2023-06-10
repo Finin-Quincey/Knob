@@ -8,6 +8,7 @@ messages.
 import sys
 import uselect
 
+from constants import *
 import message_protocol as msp
 from serial_manager import SerialManager
 
@@ -24,6 +25,12 @@ class DeviceSerialManager(SerialManager):
         # Not sure why pylance doesn't like the following line
         self.stdin_poll.register(sys.stdin.buffer, uselect.POLLIN) # type: ignore
         
+    def send_id(self):
+        """
+        Sends the device ID to the host for identification
+        """
+        # This is done outside of the normal message system because we need to read it inline during host serial init
+        sys.stdout.buffer.write(bytes([DEVICE_ID]))
 
     ### Method Implementations ###
     

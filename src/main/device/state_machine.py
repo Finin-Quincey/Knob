@@ -49,9 +49,14 @@ class StartupState(State):
     """
     def __init__(self):
         device.leds.clear()
-        device.leds.set_colour((180, 1, 1))
+        self.last_broadcast_time = utime.ticks_ms()
 
     def update(self):
+
+        # Send regular device ID messages
+        if utime.ticks_ms() - self.last_broadcast_time > BROADCAST_INTERVAL:
+            self.last_broadcast_time = utime.ticks_ms()
+            device.serial_manager.send_id()
         
         rotation = int(PIXEL_COUNT * utime.ticks_ms() / STARTUP_ANIMATION_PERIOD) % PIXEL_COUNT
 
