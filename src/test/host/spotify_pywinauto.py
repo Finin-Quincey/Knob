@@ -63,9 +63,9 @@ for pid, exe_path, _ in pywinauto.application._process_get_modules_wmi():
 
     print(w.get_show_state())
 
-    controls_bar = app.Pane.Document.child_window(title = "", control_type = "Group", ctrl_index = 2)
-    now_playing_group = controls_bar.child_window(title_re = "Now playing.*", control_type = "Group")
-    like_btn = now_playing_group.child_window(control_type = "Button") # The like button is the only control of type Button
+    #controls_bar = app.Pane.Document.child_window(title = "", control_type = "Group", ctrl_index = 2)
+    now_playing_group = app.Pane.Document.child_window(title_re = "Now playing.*", control_type = "Group")
+    like_btn = now_playing_group.child_window(title_re = "(Save to|Remove from) Your Library", control_type = "Button") # The like button is the only control of type Button
 
     # Before this line, like_btn is just a *specification* for the button, i.e. an object describing the button - we haven't
     # actually tried to find it yet. This is actually done using the wrapper_object() method, which is normally called
