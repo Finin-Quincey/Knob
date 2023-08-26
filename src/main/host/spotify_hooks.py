@@ -25,7 +25,7 @@ like_btn = None
 
 def init():
     """
-    Initilises the Spotify hooks.
+    Initialises the Spotify hooks.
     """
     attempt_spotify_connection()
     locate_like_btn()
