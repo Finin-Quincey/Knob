@@ -123,7 +123,10 @@ def is_current_song_liked() -> bool:
     """
     Returns True if the current song is liked, False if not.
     """
-    return like_btn is not None and like_btn.get_toggle_state()
+    # Spotify somehow managed to break the toggle state function with one of their updates so now we have to read the button text
+    # Matching part of the text and not case-sensitive to try and be as robust as possible to text changes
+    return like_btn is not None and "remove" in like_btn.window_text().lower()
+    #return like_btn is not None and like_btn.get_toggle_state()
 
 
 def toggle_liked_status():
