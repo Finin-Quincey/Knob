@@ -60,7 +60,7 @@ class HostSerialManager(SerialManager):
                     self.serial_connection.close()
                     # Otherwise try the next pico, if there is one
         else:
-            log.debug("Attempting to initialise serial connection on %s at %i baud", port.name, BAUD_RATE)
+            log.debug("Attempting to initialise serial connection on %s at %i baud", COM_PORT, BAUD_RATE)
             self.serial_connection = serial.Serial(COM_PORT, BAUD_RATE, timeout = CONNECTION_TIMEOUT)
             return self
         raise SerialException("Unable to identify volume knob over USB")
