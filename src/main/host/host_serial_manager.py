@@ -5,7 +5,6 @@ Class that handles serial communication on the host end. Deals with setting up t
 messages.
 """
 
-import time
 import serial
 import serial.tools.list_ports as list_ports
 from serial.serialutil import SerialException
