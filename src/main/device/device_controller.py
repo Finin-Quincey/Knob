@@ -5,6 +5,7 @@ Module responsible for overall control flow on the device end. The run() functio
 """
 
 import utime
+import sys
 
 from constants import * # Usually considered bad practice but here I think it improves readability
 
@@ -26,10 +27,12 @@ serial_manager = DeviceSerialManager()
 
 
 def init():
-    serial_manager.register_handler(msp.VolumeMessage, handle_volume_msg)
-    serial_manager.register_handler(msp.VUMessage, handle_vu_msg)
-    serial_manager.register_handler(msp.SpectrumMessage, handle_spectrum_msg)
-    serial_manager.register_handler(msp.LikeStatusMessage, handle_like_status_msg)
+    serial_manager.register_handler(msp.VolumeMessage,      handle_volume_msg)
+    serial_manager.register_handler(msp.VUMessage,          handle_vu_msg)
+    serial_manager.register_handler(msp.SpectrumMessage,    handle_spectrum_msg)
+    serial_manager.register_handler(msp.LikeStatusMessage,  handle_like_status_msg)
+    serial_manager.register_handler(msp.DisconnectMessage,  handle_disconnect_msg)
+    serial_manager.register_handler(msp.ExitMessage,        handle_exit_msg)
 
 
 ### Handlers ###
@@ -45,7 +48,8 @@ def handle_vu_msg(msg: msp.VUMessage):
 
 
 def handle_spectrum_msg(msg: msp.SpectrumMessage):
-    if state_machine.is_in_state(state_machine.StartupState): state_machine.set_state(state_machine.IdleState()) # TODO: Temporary, remove
+    # TODO: Temporary, will be replaced with a dedicated handshake message that also syncs across settings
+    if state_machine.is_in_state(state_machine.StartupState): state_machine.set_state(state_machine.IdleState())
     if state_machine.get_current_state().should_display_audio():
         for i, v in enumerate(msg.left):
             leds.set_pixel(PIXEL_COUNT-i-1, (280 - i * 14 - int(v * 100), 255 - int(v * 180), (190 + int(v * 65)) * AUDIO_VISUALISER_BRIGHTNESS))
@@ -60,6 +64,14 @@ def handle_like_status_msg(msg: msp.LikeStatusMessage):
             leds.crossfade(LED_ANIMATION_DURATION)
         else:
             state_machine.set_state(state_machine.UnlikeAnimationState())
+
+
+def handle_disconnect_msg(msg: msp.DisconnectMessage):
+    state_machine.set_state(state_machine.StartupState())
+
+
+def handle_exit_msg(msg: msp.ExitMessage):
+    sys.exit() # No cleanup to be done!
 
 
 ### Main Program Loop ###

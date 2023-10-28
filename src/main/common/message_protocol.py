@@ -214,7 +214,7 @@ class SpectrumMessage(Message):
 
 class LikeMessage(Message):
     """
-    Message sent like/unlike the current song.
+    Message sent to like/unlike the current song.
     
     Direction: Device -> Host
     
@@ -244,6 +244,30 @@ class LikeStatusMessage(Message):
 
     def from_bytes(self, data: list):
         self.liked = bool(data.pop(0))
+
+
+class DisconnectMessage(Message):
+    """
+    Message sent on host program exit or restart to return the device to its startup state.
+    
+    Direction: Host -> Device
+    
+    Additional data: None
+    """
+    def __init__(self):
+        super().__init__() # No additional data required
+
+
+class ExitMessage(Message):
+    """
+    Message sent on activation of development mode to make the device exit to the REPL.
+    
+    Direction: Host -> Device
+    
+    Additional data: None
+    """
+    def __init__(self):
+        super().__init__() # No additional data required
 
 
 ### Functions ###
@@ -276,3 +300,5 @@ register(VUMessage)
 register(SpectrumMessage)
 register(LikeMessage)
 register(LikeStatusMessage)
+register(DisconnectMessage)
+register(ExitMessage)
