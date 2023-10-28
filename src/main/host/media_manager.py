@@ -12,7 +12,7 @@ from ctypes import cast, POINTER
 from comtypes import CLSCTX_ALL
 from pycaw.pycaw import AudioUtilities, IAudioEndpointVolume
 
-from winsdk.windows.media.control import GlobalSystemMediaTransportControlsSessionManager as MediaManager
+from winsdk.windows.media.control import GlobalSystemMediaTransportControlsSessionManager as WinSessionManager
 
 ### Constants ###
 
@@ -25,86 +25,68 @@ PLAYING = 4
 PAUSED = 5
 
 
-### Globals ###
+class MediaManager:
 
-initialised = False
-system_volume = None
+    def __init__(self) -> None:
+        """
+        Initialises a new instance of the media manager.
+        """
+        log.info("Initialising media manager")
 
-
-### Functions ###
-
-def init():
-    """
-    Initialises the media manager. Must be called before using any of the other functions in this module.
-    """
-    global system_volume
-    global initialised
-
-    log.info("Initialising media manager")
-
-    # Init system volume access with pycaw
-    devices = AudioUtilities.GetSpeakers()
-    interface = devices.Activate(IAudioEndpointVolume._iid_, CLSCTX_ALL, None)
-    system_volume = cast(interface, POINTER(IAudioEndpointVolume))
-
-    initialised = True
+        # Init system volume access with pycaw
+        devices = AudioUtilities.GetSpeakers()
+        interface = devices.Activate(IAudioEndpointVolume._iid_, CLSCTX_ALL, None)
+        self.system_volume = cast(interface, POINTER(IAudioEndpointVolume))
 
 
-def get_volume() -> float:
-    """
-    Returns the system volume, expressed as a fraction between 0 (muted) and 1 (max volume)
-    """
-    log.log(TRACE, "Attempting to get system volume")
-    if not initialised: raise RuntimeError("Media manager accessed before initialisation!")
-    return system_volume.GetMasterVolumeLevelScalar() # type: ignore
+    def get_volume(self) -> float:
+        """
+        Returns the system volume, expressed as a fraction between 0 (muted) and 1 (max volume)
+        """
+        log.log(TRACE, "Attempting to get system volume")
+        return self.system_volume.GetMasterVolumeLevelScalar() # type: ignore
 
 
-def set_volume(volume: float):
-    """
-    Sets the system volume to the given value, specified as a fraction between 0 (muted) and 1 (max volume)
-    """
-    log.log(TRACE, "Attempting to set volume to %.2f", volume)
-    if not initialised: raise RuntimeError("Media manager accessed before initialisation!")
-    if volume < 0 or volume > 1: raise ValueError(f"Invalid volume level: {volume}")
-    system_volume.SetMasterVolumeLevelScalar(volume, None) # type: ignore
+    def set_volume(self, volume: float):
+        """
+        Sets the system volume to the given value, specified as a fraction between 0 (muted) and 1 (max volume)
+        """
+        log.log(TRACE, "Attempting to set volume to %.2f", volume)
+        if volume < 0 or volume > 1: raise ValueError(f"Invalid volume level: {volume}")
+        self.system_volume.SetMasterVolumeLevelScalar(volume, None) # type: ignore
 
 
-def is_playing() -> bool:
-    """
-    Returns True if there is media currently playing, False otherwise
-    """
-    log.log(TRACE, "Attempting to retrieve current playback status")
-    if not initialised: raise RuntimeError("Media manager accessed before initialisation!")
-    return asyncio.run(_is_playing())
+    def is_playing(self) -> bool:
+        """
+        Returns True if there is media currently playing, False otherwise
+        """
+        log.log(TRACE, "Attempting to retrieve current playback status")
+        return asyncio.run(_is_playing())
 
 
-def toggle_playback() -> bool:
-    """
-    Attempts to toggle the playback of the current media
-    """
-    log.log(TRACE, "Attempting to toggle playback")
-    # Not actually necessary but included for consistency
-    if not initialised: raise RuntimeError("Media manager accessed before initialisation!")
-    return asyncio.run(_toggle_playback())
+    def toggle_playback(self) -> bool:
+        """
+        Attempts to toggle the playback of the current media
+        """
+        log.log(TRACE, "Attempting to toggle playback")
+        return asyncio.run(_toggle_playback())
 
 
-def skip(forward = True) -> bool:
-    """
-    Attempts to skip to the next (default) or previous track and returns True if successful
-    """
-    log.log(TRACE, "Attempting to skip %s", "forawrd" if forward else "backward")
-    if not initialised: raise RuntimeError("Media manager accessed before initialisation!")
-    if forward: return asyncio.run(_skip_forward())
-    else: return asyncio.run(_skip_backward())
+    def skip(self, forward = True) -> bool:
+        """
+        Attempts to skip to the next (default) or previous track and returns True if successful
+        """
+        log.log(TRACE, "Attempting to skip %s", "forawrd" if forward else "backward")
+        if forward: return asyncio.run(_skip_forward())
+        else: return asyncio.run(_skip_backward())
 
 
-def get_media_info() -> dict:
-    """
-    Returns a dictionary of information about the currently-playing media
-    """
-    log.log(TRACE, "Attempting to retrieve info for the current media")
-    if not initialised: raise RuntimeError("Media manager accessed before initialisation!")
-    return asyncio.run(_get_media_info())
+    def get_media_info(self) -> dict:
+        """
+        Returns a dictionary of information about the currently-playing media
+        """
+        log.log(TRACE, "Attempting to retrieve info for the current media")
+        return asyncio.run(_get_media_info())
 
 
 ### Internal Functions ###
@@ -114,7 +96,7 @@ async def _is_playing() -> bool:
     [Internal] Attempts to retrieve the playback status of the current media, returning True if there is currently media
     playing and False otherwise
     """
-    sessions = await MediaManager.request_async()
+    sessions = await WinSessionManager.request_async()
     current_session = sessions.get_current_session()
 
     if current_session:
@@ -131,7 +113,7 @@ async def _toggle_playback() -> bool:
     # FIXME:
     # Exception has occurred: OSError
     # [WinError -2147418110] Call was canceled by the message filter
-    sessions = await MediaManager.request_async()
+    sessions = await WinSessionManager.request_async()
     current_session = sessions.get_current_session()
 
     if current_session:
@@ -146,7 +128,7 @@ async def _skip_forward() -> bool:
     """
     [Internal] Attempts to skip to the next track and returns True if successful
     """
-    sessions = await MediaManager.request_async()
+    sessions = await WinSessionManager.request_async()
     current_session = sessions.get_current_session()
 
     if current_session:
@@ -161,7 +143,7 @@ async def _skip_backward() -> bool:
     """
     [Internal] Attempts to skip to the previous track and returns True if successful
     """
-    sessions = await MediaManager.request_async()
+    sessions = await WinSessionManager.request_async()
     current_session = sessions.get_current_session()
 
     if current_session:
@@ -177,7 +159,7 @@ async def _get_media_info():
     [Internal] Retrieves information about the currently-playing media and returns it as a dictionary. Returns an empty
     dictionary if there is no playback session running.
     """
-    sessions = await MediaManager.request_async()
+    sessions = await WinSessionManager.request_async()
     current_session = sessions.get_current_session()
 
     if current_session:

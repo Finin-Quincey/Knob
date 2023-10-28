@@ -9,11 +9,11 @@ import logging as log
 from serial.serialutil import SerialException
 
 from constants import *
-import media_manager as media
 import message_protocol as msp
 from host_serial_manager import HostSerialManager
 from audio_listener import AudioListener
-import spotify_hooks as spotify
+from media_manager import MediaManager
+from spotify_hooks import SpotifyHooks
 
 
 ### Setup ###
@@ -29,8 +29,8 @@ log.info("*** Starting volume knob host process ***")
 # Init other modules/classes
 serial_manager = HostSerialManager()
 audio = AudioListener()
-media.init()
-spotify.init()
+media = MediaManager()
+spotify = SpotifyHooks()
 
 ### Handlers ###
 
@@ -66,11 +66,11 @@ def handle_like_msg(msg: msp.LikeMessage):
 
 # Register message handlers
 log.info("Registering message handlers")
-serial_manager.register_handler(msp.VolumeRequestMessage, handle_vol_request_msg)
-serial_manager.register_handler(msp.VolumeMessage, handle_vol_change_msg)
-serial_manager.register_handler(msp.TogglePlaybackMessage, handle_toggle_playback_msg)
-serial_manager.register_handler(msp.SkipMessage, handle_skip_msg)
-serial_manager.register_handler(msp.LikeMessage, handle_like_msg)
+serial_manager.register_handler(msp.VolumeRequestMessage,   handle_vol_request_msg)
+serial_manager.register_handler(msp.VolumeMessage,          handle_vol_change_msg)
+serial_manager.register_handler(msp.TogglePlaybackMessage,  handle_toggle_playback_msg)
+serial_manager.register_handler(msp.SkipMessage,            handle_skip_msg)
+serial_manager.register_handler(msp.LikeMessage,            handle_like_msg)
 
 
 ### Program Control Functions ###
