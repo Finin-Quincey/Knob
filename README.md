@@ -32,3 +32,17 @@ A USB volume knob powered by Raspberry Pi Pico, featuring a stylish minimalist l
 - [Interactive Pico Pinout](https://pico.pinout.xyz/)
 - [MicroPython docs](https://docs.micropython.org/en/latest/index.html)
 - [ampy on GitHub](https://github.com/scientifichackers/ampy)
+
+---
+
+### TODO
+- Catch errors and problems due to lack of spotify, windows being minimised, lost connection to audio device, etc.
+- Add config file
+- Improve encoder read robustness
+- Output log to file
+- Sort out volume compensation for audio visualisations
+- Implement switchable audio visualisations
+- Potentially add success/fail messages so we don't give the user feedback when it didn't work
+- Package up and get running automatically as a background process
+- System tray icon/menu
+- Lock to specific app

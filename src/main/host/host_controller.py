@@ -4,19 +4,6 @@ Host Controller
 Module responsible for overall control flow on the host end. Runs on host process start.
 """
 
-# TODO
-# - Catch errors and problems due to lack of spotify, windows being minimised, lost connection to audio device, etc.
-# - Add config file
-# - Improve encoder read robustness
-# - Output log to file
-# - Sort out volume compensation for audio visualisations
-# - Implement switchable audio visualisations
-# - Potentially add success/fail messages so we don't give the user feedback when it didn't work
-# - Package up and get running automatically as a background process
-# - System tray icon/menu
-# - Lock to specific app
-# - Startup animation
-
 import time
 import logging as log
 from serial.serialutil import SerialException
@@ -84,6 +71,16 @@ serial_manager.register_handler(msp.VolumeMessage, handle_vol_change_msg)
 serial_manager.register_handler(msp.TogglePlaybackMessage, handle_toggle_playback_msg)
 serial_manager.register_handler(msp.SkipMessage, handle_skip_msg)
 serial_manager.register_handler(msp.LikeMessage, handle_like_msg)
+
+
+### Program Control Functions ###
+
+def restart():
+    """
+    Restarts both the host and device programs.
+    """
+    # TODO: Send restart message to device
+    # TODO: Set restart flag to exit main loop
 
 
 ### Main Program Loop ###
