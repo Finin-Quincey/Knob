@@ -17,15 +17,6 @@ MESSAGE_REGISTRY = [] # List of message types, index is the message ID
 
 ### Classes ###
 
-# It may seem a bit overkill to go full object-oriented for this. A potential alternative is to use a proxy pattern with
-# network handler classes for both device and host that inherit from a common base class, with functions for each type
-# of message. This achieves the same goal of providing a contract for eactly what data goes into each type of message.
-# However, the issue there is that we don't necessarily know the type of an incoming message (sometimes it can be inferred
-# from context but on the host end especially, it could be anything). This means we would have to have a single centralised
-# decode() function anyway, and then a switch statement for each kind of message (potentially broken out into other functions).
-# This would then have to return a tuple of values including the ID so that the caller can then determine the type of message
-# ... which kind of defeats the point
-
 class Message:
 
     def __init__(self, size = 0):
@@ -263,17 +254,7 @@ def register(message_type: type[Message]):
     """
     #if not issubclass(message_class, Message): raise TypeError("Cannot register message type; must inherit from Message")
     MESSAGE_REGISTRY.append(message_type)
-
-# Two different approaches to determining when to stop reading:
-# 1. Send a newline char (\n) at the end of each message and use readline() - neat but inefficient
-#    + Simple to implement
-#    + No need to know the size of messages beforehand
-#    - Adds 1 byte to every single message
-# 2. Define the length of each message at compile-time, then look that up once message type has been determined and
-#    read the rest of the message based on that - messier but efficient
-#    + No additional bytes need to be sent
-#    - More complex to implement, requires some back-and-forth between serial managers and message_protocol
-# I've gone for option 2 for now, but a potential compromise is to supply a read function as an argument to decode()
+    
 
 def msg_from_id(id_byte: bytes) -> Message:
     """
