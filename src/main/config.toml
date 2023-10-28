@@ -1,0 +1,18 @@
+##################################
+# Volume Knob Configuration File #
+##################################
+
+log_level = "DEBUG"
+show_tray_icon = true
+
+[connection]
+com_port = "auto"			# COM port that the device is connected to, or "auto" to identify automatically
+baud_rate = 115200          # Baud rate for the serial connection (default 115200)
+connection_timeout = 5      # Serial connection timeout, in seconds
+reconnect_delay = 5			# Time between connection attempts, in seconds
+
+[animation]
+animation = "spectrum"		# Valid values: "off", "static", "breathe", "vu_meter", "spectrum". Requires restart.
+colours = [
+	"#ffffff"
+]
