@@ -13,4 +13,4 @@ for %%d in (.\\src\\main\\common, .\\src\\main\\device, .\\lib\\device) do (
     popd
 )
 echo Upload done, rebooting Pico...
-ampy reset --hard
+ampy reset --hard >nul
