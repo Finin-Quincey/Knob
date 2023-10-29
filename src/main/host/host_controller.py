@@ -5,6 +5,7 @@ Module responsible for overall control flow on the host end. Runs on host proces
 """
 
 import time
+from enum import Enum
 import logging as log
 from serial.serialutil import SerialException
 
@@ -16,6 +17,9 @@ from media_manager import MediaManager
 from spotify_hooks import SpotifyHooks
 
 
+# No-op placeholder function to avoid null-checking of variables of function type
+NOOP = lambda: None # TODO: potentially have this accept self as an arg?
+
 ### Setup ###
 
 log.basicConfig(format = "%(asctime)s [%(levelname)s] %(message)s",
@@ -24,85 +28,129 @@ log.basicConfig(format = "%(asctime)s [%(levelname)s] %(message)s",
 
 log.addLevelName(TRACE, 'TRACE') # TRACE logging level for repetitive messages
 
-log.info("*** Starting volume knob host process ***")
 
-# Init other modules/classes
-serial_manager = HostSerialManager()
-audio = AudioListener()
-media = MediaManager()
-spotify = SpotifyHooks()
-
-### Handlers ###
-
-def handle_vol_request_msg(msg: msp.VolumeRequestMessage):
-    # Get current system volume
-    vol = media.get_volume()
-    # Construct a volume message and send it to the device
-    reply = msp.VolumeMessage(vol)
-    serial_manager.send(reply)
+class ExitFlag(Enum):
+    NONE = 0
+    RESTART = 1
+    EXIT = 2
 
 
-def handle_vol_change_msg(msg: msp.VolumeMessage):
-    # Set system volume to new level
-    media.set_volume(msg.volume)
+class HostController:
+
+    def __init__(self) -> None:
+
+        self.exit_flag = ExitFlag.NONE
+
+        # Event callbacks
+        self.connect_callback = NOOP
+        self.disconnect_callback = NOOP
+
+        # Init other modules/classes
+        self.serial_manager = HostSerialManager()
+        self.audio_listener = AudioListener()
+        self.media_manager = MediaManager()
+        self.spotify_hooks = SpotifyHooks()
+
+        # Register message handlers
+        log.info("Registering message handlers")
+        self.serial_manager.register_handler(msp.VolumeRequestMessage,   self.handle_vol_request_msg)
+        self.serial_manager.register_handler(msp.VolumeMessage,          self.handle_vol_change_msg)
+        self.serial_manager.register_handler(msp.TogglePlaybackMessage,  self.handle_toggle_playback_msg)
+        self.serial_manager.register_handler(msp.SkipMessage,            self.handle_skip_msg)
+        self.serial_manager.register_handler(msp.LikeMessage,            self.handle_like_msg)
 
 
-def handle_toggle_playback_msg(msg: msp.TogglePlaybackMessage):
-    media.toggle_playback()
-    # Not currently sending a reply since we're using the same animation for play and pause
+    ### Handlers ###
+
+    def handle_vol_request_msg(self, msg: msp.VolumeRequestMessage):
+        # Get current system volume
+        vol = self.media_manager.get_volume()
+        # Construct a volume message and send it to the device
+        reply = msp.VolumeMessage(vol)
+        self.serial_manager.send(reply)
 
 
-def handle_skip_msg(msg: msp.SkipMessage):
-    media.skip(msg.forward)
+    def handle_vol_change_msg(self, msg: msp.VolumeMessage):
+        # Set system volume to new level
+        self.media_manager.set_volume(msg.volume)
 
 
-def handle_like_msg(msg: msp.LikeMessage):
-    # Spotify takes a short time to respond so it's easier to reply first with the opposite of the
-    # previous liked status and then do the actual toggling
-    reply = msp.LikeStatusMessage(not spotify.is_current_song_liked())
-    spotify.toggle_liked_status()
-    serial_manager.send(reply)
+    def handle_toggle_playback_msg(self, msg: msp.TogglePlaybackMessage):
+        self.media_manager.toggle_playback()
+        # Not currently sending a reply since we're using the same animation for play and pause
 
 
-# Register message handlers
-log.info("Registering message handlers")
-serial_manager.register_handler(msp.VolumeRequestMessage,   handle_vol_request_msg)
-serial_manager.register_handler(msp.VolumeMessage,          handle_vol_change_msg)
-serial_manager.register_handler(msp.TogglePlaybackMessage,  handle_toggle_playback_msg)
-serial_manager.register_handler(msp.SkipMessage,            handle_skip_msg)
-serial_manager.register_handler(msp.LikeMessage,            handle_like_msg)
+    def handle_skip_msg(self, msg: msp.SkipMessage):
+        self.media_manager.skip(msg.forward)
 
 
-### Program Control Functions ###
-
-def restart():
-    """
-    Restarts both the host and device programs.
-    """
-    # TODO: Send restart message to device
-    # TODO: Set restart flag to exit main loop
+    def handle_like_msg(self, msg: msp.LikeMessage):
+        # Spotify takes a short time to respond so it's easier to reply first with the opposite of the
+        # previous liked status and then do the actual toggling
+        reply = msp.LikeStatusMessage(not self.spotify_hooks.is_current_song_liked())
+        self.spotify_hooks.toggle_liked_status()
+        self.serial_manager.send(reply)
 
 
-### Main Program Loop ###
+    ### Program Control Functions ###
 
-while(True):
+    def restart(self):
+        """
+        Restarts both the host and device programs.
+        """
+        log.info("Sending device restart...")
+        self.serial_manager.send(msp.DisconnectMessage())
+        log.info("Restarting host process...")
+        self.exit_flag = ExitFlag.RESTART
 
-    log.info("Attempting device connection...")
+    
+    def exit(self):
+        """
+        Exits the host program and restarts the device program ready to reconnect once the host is relaunched.
+        """
+        log.info("Sending device restart...")
+        self.serial_manager.send(msp.DisconnectMessage())
+        log.info("Exiting host process...")
+        self.exit_flag = ExitFlag.EXIT
 
-    try:
 
-        with serial_manager:
+    def dev_mode(self):
+        """
+        Exits both the host and device programs, returning the device to the REPL to allow reprogramming.
+        """
+        log.info("Putting device into development mode...")
+        self.serial_manager.send(msp.ExitMessage())
+        log.info("Exiting host process...")
+        self.exit_flag = ExitFlag.EXIT
 
-            log.info("Device connection successful")
 
-            while(True):
+    ### Main Program Loop ###
 
-                serial_manager.update()
-                audio.update(serial_manager)
+    def run(self):
 
-                time.sleep(0.02)
+        while(self.exit_flag == ExitFlag.NONE):
 
-    except SerialException:
-        log.info(f"Failed to connect to device; retrying in {RECONNECT_DELAY} seconds")
+            log.info("Attempting device connection...")
 
-    time.sleep(RECONNECT_DELAY)
+            try:
+
+                with self.serial_manager:
+
+                    self.connect_callback()
+                    log.info("Device connection successful")
+
+                    while(self.exit_flag == ExitFlag.NONE):
+
+                        self.serial_manager.update()
+                        self.audio_listener.update(self.serial_manager, self.media_manager)
+
+                        time.sleep(0.02)
+
+            except SerialException:
+                log.info(f"Failed to connect to device; retrying in {RECONNECT_DELAY} seconds")
+                
+            self.disconnect_callback()
+
+            time.sleep(RECONNECT_DELAY)
+
+        return self.exit_flag
