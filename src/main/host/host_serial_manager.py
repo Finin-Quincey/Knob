@@ -52,6 +52,8 @@ class HostSerialManager(SerialManager):
                     if len(bytes) > 0: # If we received something
                         log.debug("Received device ID: %d", int(bytes[0]))
                         if bytes[0] == DEVICE_ID: # Check ID matches
+                            self.serial_connection.flush() # Clear out any bytes that are still in the input stream
+                            self.connected_port = port # Record port info for future reference
                             return self # We are done here
                     else:
                         log.debug("Timed out waiting for device ID")
