@@ -24,10 +24,18 @@ from spotify_hooks import SpotifyHooks
 NOOP = lambda: None # TODO: potentially have this accept self as an arg?
 
 class ExitFlag(Enum):
-    NONE = 0
-    RESTART = 1
-    EXIT = 2
-    DEV_MODE = 3
+    NONE        = 0
+    RESTART     = 1
+    EXIT        = 2
+    DEV_MODE    = 3
+
+class Event(Enum):
+    DEVICE_CONNECT      = "device_connect"
+    DEVICE_DISCONNECT   = "device_disconnect"
+    PLAY                = "play"
+    PAUSE               = "pause"
+    SPOTIFY_CONNECT     = "spotify_connect"
+    SPOTIFY_DISCONNECT  = "spotify_disconnect"
 
 
 def init_logger():
@@ -61,9 +69,8 @@ class HostController:
 
         self.exit_flag = ExitFlag.NONE
 
-        # Event callbacks
-        self.connect_callback = NOOP
-        self.disconnect_callback = NOOP
+        # Event callback registry
+        self.event_callbacks = {e: NOOP for e in Event}
 
         # Init other modules/classes
         self.serial_manager = HostSerialManager()
@@ -79,6 +86,26 @@ class HostController:
         self.serial_manager.register_handler(msp.SkipMessage,            self.handle_skip_msg)
         self.serial_manager.register_handler(msp.LikeMessage,            self.handle_like_msg)
 
+
+    def set_callback(self, event: Event, callback):
+        """
+        Attaches the given callback function to the specified event. This will overwrite any existing
+        callback for that event.
+        
+        #### Parameters
+        ##### Required
+        - `event`: The event to attach the callback to.
+        - `callback`: The function to run each time the given event happens.
+        """
+        self.event_callbacks[event] = callback
+
+    
+    def _post_event(self, event):
+        """
+        [Internal] Triggers the callback associated with the given event, if any.
+        """
+        self.event_callbacks[event]()
+        
 
     ### Handlers ###
 
@@ -98,6 +125,10 @@ class HostController:
     def handle_toggle_playback_msg(self, msg: msp.TogglePlaybackMessage):
         self.media_manager.toggle_playback()
         # Not currently sending a reply since we're using the same animation for play and pause
+        if self.media_manager.is_playing():
+            self._post_event(Event.PLAY)
+        else:
+            self._post_event(Event.PAUSE)
 
 
     def handle_skip_msg(self, msg: msp.SkipMessage):
@@ -150,7 +181,7 @@ class HostController:
 
                 with self.serial_manager:
 
-                    self.connect_callback()
+                    self._post_event(Event.DEVICE_CONNECT)
                     log.info("Device connection successful")
 
                     while(self.exit_flag == ExitFlag.NONE):
@@ -170,7 +201,7 @@ class HostController:
             except SerialException:
                 log.info(f"Failed to connect to device; retrying in {RECONNECT_DELAY} seconds")
                 
-            self.disconnect_callback()
+            self._post_event(Event.DEVICE_DISCONNECT)
 
             time.sleep(RECONNECT_DELAY)
 

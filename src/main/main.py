@@ -7,7 +7,7 @@ the program.
 
 import pystray
 from PIL import Image
-from host.host_controller import HostController, ExitFlag
+from host.host_controller import HostController, ExitFlag, Event
 
 
 ### Globals ###
@@ -18,34 +18,66 @@ img_disconnected = Image.open("src/main/systray_icon_disconnected.png")
 controller = HostController()
 
 
+### Helper functions ###
+
+def update_device_status(connected: bool):
+    lines = icon.title.split("\n")
+    device_status = "Connected" if connected else "Not connected"
+    lines[0] = f"Knob - {device_status}"
+    icon.title = "\n".join(lines)
+
+def update_spotify_status(connected: bool):
+    lines = icon.title.split("\n")
+    spotify_status = "Connected to Spotify" if connected else "Spotify unavailable"
+    lines[1] = f"{spotify_status}"
+    icon.title = "\n".join(lines)
+
+
 ### Callbacks ###
 
 def connect_callback():
     icon.icon = img_connected
+    update_device_status(True)
 
 def disconnect_callback():
     icon.icon = img_disconnected
+    update_device_status(False)
 
+def spotify_connect_callback():
+    update_spotify_status(True)
 
+def spotify_disconnect_callback():
+    update_spotify_status(False)
+
+ 
 ### Setup Thread Loop ###
 
 def run_host_process(icon):
 
     global controller
 
+    # Icon setup
     icon.visible = True
+    update_device_status(False)
+    update_spotify_status(False)
 
     while(True):
 
-        controller.connect_callback = connect_callback
-        controller.disconnect_callback = disconnect_callback
+        # Register host process callbacks
+        controller.set_callback(Event.DEVICE_CONNECT,       connect_callback)
+        controller.set_callback(Event.DEVICE_DISCONNECT,    disconnect_callback)
+        controller.set_callback(Event.SPOTIFY_CONNECT,      spotify_connect_callback)
+        controller.set_callback(Event.SPOTIFY_DISCONNECT,   spotify_disconnect_callback)
         
+        # Start main program loop
         exit_flag = controller.run()
 
+        # Check whether program exited with restart code
         if exit_flag == ExitFlag.RESTART:
             controller = HostController() # Recreate fresh controller object (old one should be gc-ed)
             continue
         
+        # Otherwise, clean up and exit the program
         icon.stop()
         return # Need to exit the loop here or it'll block icon.run() from exiting
 
@@ -77,18 +109,18 @@ menu = pystray.Menu(
     pystray.Menu.SEPARATOR,
     pystray.MenuItem(
         text = "Development Mode",
-        action = controller.dev_mode
+        action = lambda icon, item: controller.dev_mode()
     ),
     pystray.MenuItem(
         text = "Restart",
-        action = controller.restart
+        action = lambda icon, item: controller.restart()
     ),
     pystray.MenuItem(
         text = "Quit",
-        action = controller.exit
+        action = lambda icon, item: controller.exit()
     )
 )
 
-icon = pystray.Icon("volume_knob", icon = img_disconnected, title = "Knob", menu = menu, visible = True)
+icon = pystray.Icon("volume_knob", icon = img_disconnected, title = "Knob\n", menu = menu, visible = True)
 
 icon.run(setup = run_host_process)
