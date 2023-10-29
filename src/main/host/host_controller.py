@@ -33,6 +33,7 @@ class ExitFlag(Enum):
     NONE = 0
     RESTART = 1
     EXIT = 2
+    DEV_MODE = 3
 
 
 class HostController:
@@ -98,9 +99,7 @@ class HostController:
         """
         Restarts both the host and device programs.
         """
-        log.info("Sending device restart...")
-        self.serial_manager.send(msp.DisconnectMessage())
-        log.info("Restarting host process...")
+        log.info("Initiating host process restart...")
         self.exit_flag = ExitFlag.RESTART
 
     
@@ -108,9 +107,7 @@ class HostController:
         """
         Exits the host program and restarts the device program ready to reconnect once the host is relaunched.
         """
-        log.info("Sending device restart...")
-        self.serial_manager.send(msp.DisconnectMessage())
-        log.info("Exiting host process...")
+        log.info("Initiating host process exit...")
         self.exit_flag = ExitFlag.EXIT
 
 
@@ -118,10 +115,8 @@ class HostController:
         """
         Exits both the host and device programs, returning the device to the REPL to allow reprogramming.
         """
-        log.info("Putting device into development mode...")
-        self.serial_manager.send(msp.ExitMessage())
-        log.info("Exiting host process...")
-        self.exit_flag = ExitFlag.EXIT
+        log.info("Initiating host process exit...")
+        self.exit_flag = ExitFlag.DEV_MODE
 
 
     ### Main Program Loop ###
@@ -144,7 +139,14 @@ class HostController:
                         self.serial_manager.update()
                         self.audio_listener.update(self.serial_manager, self.media_manager)
 
-                        time.sleep(0.02)
+                    if self.exit_flag == ExitFlag.DEV_MODE:
+                        log.info("Putting device into development mode...")
+                        self.serial_manager.send(msp.ExitMessage())
+                    else:
+                        log.info("Sending device restart...")
+                        self.serial_manager.send(msp.DisconnectMessage())
+
+                    time.sleep(0.02)
 
             except SerialException:
                 log.info(f"Failed to connect to device; retrying in {RECONNECT_DELAY} seconds")

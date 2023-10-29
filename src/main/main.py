@@ -44,7 +44,7 @@ def run_host_process(icon):
         
         exit_flag = controller.run()
 
-        if exit_flag == ExitFlag.EXIT:
+        if exit_flag == ExitFlag.EXIT or exit_flag == ExitFlag.DEV_MODE:
             #log.info("*** Exiting volume knob host process ***")
             icon.stop()
             return # Need to exit the loop here or it'll block icon.run() from exiting
