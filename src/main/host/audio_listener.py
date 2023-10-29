@@ -41,6 +41,7 @@ class AudioListener():
         """
         Creates a new audio listener
         """
+        log.info("Initialising audio listener")
         
         self.frequency_resolution = AUDIO_SAMPLE_RATE / AUDIO_SAMPLES_PER_FRAME
         # Controls how the contribution of previous samples decays over time

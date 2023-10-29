@@ -27,6 +27,7 @@ class HostSerialManager(SerialManager):
 
     def __init__(self):
         super().__init__()
+        log.info("Initialising serial manager")
         self.serial_connection = None
         self.connected_port = None
 
@@ -76,7 +77,7 @@ class HostSerialManager(SerialManager):
                 return
             except: # Plug was pulled so we can't do anything
                 pass
-        log.info("Device disconnected") # Only reachable if no serial connection
+        log.warn("Device was physically disconnected; unable to flush serial buffer")
 
 
     ### Method Implementations ###

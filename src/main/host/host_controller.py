@@ -4,6 +4,8 @@ Host Controller
 Module responsible for overall control flow on the host end. Runs on host process start.
 """
 
+import os
+import sys
 import time
 from enum import Enum
 import logging as log
@@ -16,18 +18,10 @@ from audio_listener import AudioListener
 from media_manager import MediaManager
 from spotify_hooks import SpotifyHooks
 
+### Constants ###
 
 # No-op placeholder function to avoid null-checking of variables of function type
 NOOP = lambda: None # TODO: potentially have this accept self as an arg?
-
-### Setup ###
-
-log.basicConfig(format = "%(asctime)s [%(levelname)s] %(message)s",
-                datefmt = "%d-%m-%Y %I:%M:%S %p",
-                level = log.DEBUG)
-
-log.addLevelName(TRACE, 'TRACE') # TRACE logging level for repetitive messages
-
 
 class ExitFlag(Enum):
     NONE = 0
@@ -36,9 +30,34 @@ class ExitFlag(Enum):
     DEV_MODE = 3
 
 
+def init_logger():
+    
+    if not os.path.exists(LOGS_DIRECTORY):
+        os.makedirs(LOGS_DIRECTORY)
+
+    console_log_handler = log.StreamHandler(sys.stderr)
+    primary_log_handler = log.FileHandler(os.path.join(LOGS_DIRECTORY, PRIMARY_LOG_FILENAME), mode = "w")
+    debug_log_handler = log.FileHandler(os.path.join(LOGS_DIRECTORY, DEBUG_LOG_FILENAME), mode = "w")
+
+    console_log_handler.setLevel(log.DEBUG)
+    primary_log_handler.setLevel(log.INFO)
+    debug_log_handler.setLevel(TRACE)
+
+    log.basicConfig(format = "%(asctime)s [%(levelname)s] %(message)s",
+                    datefmt = "%d-%m-%Y %I:%M:%S %p",
+                    level = log.DEBUG,
+                    handlers = [console_log_handler, primary_log_handler, debug_log_handler])
+
+    log.addLevelName(TRACE, 'TRACE') # TRACE logging level for repetitive messages
+
+
 class HostController:
 
     def __init__(self) -> None:
+
+        init_logger()
+
+        log.info("*** Starting volume knob host process ***")
 
         self.exit_flag = ExitFlag.NONE
 
@@ -154,5 +173,11 @@ class HostController:
             self.disconnect_callback()
 
             time.sleep(RECONNECT_DELAY)
+
+        log.debug("Host controller exit (exit flag: %s)", self.exit_flag)
+        log.info("*** Stopping volume knob host process ***")
+
+        # Cleanup
+        log.shutdown()
 
         return self.exit_flag

@@ -16,6 +16,9 @@ RECONNECT_DELAY = 5                 # Time between connection attempts, in secon
 
 # Logging
 TRACE = 5
+LOGS_DIRECTORY = "logs"
+PRIMARY_LOG_FILENAME = "latest.log"
+DEBUG_LOG_FILENAME = "debug.log"
 
 # Pin number assignments for the Raspberry Pi Pico
 ONBOARD_LED_PIN = 25                # Pin number used for the onboard LED on the Raspberry Pi Pico
