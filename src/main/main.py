@@ -77,15 +77,15 @@ menu = pystray.Menu(
     pystray.Menu.SEPARATOR,
     pystray.MenuItem(
         text = "Development Mode",
-        action = lambda icon, item: controller.dev_mode()
+        action = controller.dev_mode
     ),
     pystray.MenuItem(
         text = "Restart",
-        action = lambda icon, item: controller.restart()
+        action = controller.restart
     ),
     pystray.MenuItem(
         text = "Quit",
-        action = lambda icon, item: controller.exit()
+        action = controller.exit
     )
 )
 
