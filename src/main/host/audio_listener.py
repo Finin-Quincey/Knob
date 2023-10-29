@@ -14,7 +14,7 @@ import logging as log
 
 from constants import *
 from serial_manager import SerialManager
-import media_manager as media
+from media_manager import MediaManager
 import message_protocol as msp
 
 # Using context managers in modules that are part of a wider update cycle brings up an interesting problem: when a
@@ -96,7 +96,7 @@ class AudioListener():
             self.rec.__enter__()
 
         
-    def update(self, serial_manager: SerialManager):
+    def update(self, serial_manager: SerialManager, media_manager: MediaManager):
         """
         Called from the main program loop to update the audio listener
         """
@@ -132,6 +132,6 @@ class AudioListener():
         # Calculate average across frames
         freq_avg = np.sum(self.prev_hist_data * self.window_weights, axis = 0) / sum(self.window_weights)
 
-        freq_normalised = [min(0.02 * v / media.get_volume(), 1) for v in freq_avg] # Normalise to 0-1 range
+        freq_normalised = [min(0.02 * v / media_manager.get_volume(), 1) for v in freq_avg] # Normalise to 0-1 range
 
         serial_manager.send(msp.SpectrumMessage(freq_normalised, freq_normalised))
