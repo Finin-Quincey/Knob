@@ -27,6 +27,8 @@ class HostSerialManager(SerialManager):
 
     def __init__(self):
         super().__init__()
+        self.serial_connection = None
+        self.connected_port = None
 
     # Override to add logging
     def register_handler(self, message_type: type, handler):
