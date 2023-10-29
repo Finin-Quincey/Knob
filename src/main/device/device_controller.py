@@ -25,6 +25,8 @@ import state_machine
 # Serial manager
 serial_manager = DeviceSerialManager()
 
+running = True
+
 
 def init():
     serial_manager.register_handler(msp.VolumeMessage,      handle_volume_msg)
@@ -71,9 +73,8 @@ def handle_disconnect_msg(msg: msp.DisconnectMessage):
 
 
 def handle_exit_msg(msg: msp.ExitMessage):
-    leds.clear()
-    leds.update()
-    sys.exit() # Dump straight out to the REPL
+    global running
+    running = False # Will cause run() to return and hand control back to main.py for cleanup
 
 
 ### Main Program Loop ###
@@ -82,7 +83,7 @@ def run():
 
     try:
         init()
-        while True:
+        while running:
             update_loop()
 
     except Exception as e:
@@ -95,10 +96,13 @@ def run():
                 # Re-throw the error so main.py will catch it in an infinite loop rather than dumping out to the REPL
                 # That way the serial output won't get flushed and we can actually read the error description
                 raise e
+            
+    # Turn LEDs off before exiting
+    leds.clear()
+    leds.update()
 
 
 def update_loop():
-        
     serial_manager.update()
     leds.update()
     state_machine.update()
