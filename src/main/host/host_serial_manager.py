@@ -67,20 +67,25 @@ class HostSerialManager(SerialManager):
         raise SerialException("Unable to identify volume knob over USB")
 
     def __exit__(self, exc_type, exc_value, traceback):
-        try:
-            self.serial_connection.flush()
-            self.serial_connection.close()
-        except: # Plug was pulled so we can't do anything
-            log.info("Device disconnected")
+        if self.serial_connection:
+            try:
+                self.serial_connection.flush()
+                self.serial_connection.close()
+                return
+            except: # Plug was pulled so we can't do anything
+                pass
+        log.info("Device disconnected") # Only reachable if no serial connection
 
 
     ### Method Implementations ###
 
     def send(self, msg: msp.Message):
+        if not self.serial_connection: return
         b = msg.encode()
         if type(msg) not in MESSAGE_LOG_BLACKLIST: log.debug("Sending %s (raw bytes: %s)", type(msg), b)
         self.serial_connection.write(b)
 
     def read(self, n: int):
+        if not self.serial_connection: return None
         log.log(TRACE, "Attempting to read %i bytes", n)
         return self.serial_connection.read(n) if self.serial_connection.in_waiting else None
