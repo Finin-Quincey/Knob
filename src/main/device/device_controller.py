@@ -71,7 +71,9 @@ def handle_disconnect_msg(msg: msp.DisconnectMessage):
 
 
 def handle_exit_msg(msg: msp.ExitMessage):
-    sys.exit() # No cleanup to be done!
+    leds.clear()
+    leds.update()
+    sys.exit() # Dump straight out to the REPL
 
 
 ### Main Program Loop ###
