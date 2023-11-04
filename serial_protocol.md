@@ -14,7 +14,7 @@ To avoid this problem, we instead have the device broadcast an identifier unique
 
 ## Disconnect Handling
 
-The above procedure works fine as long as the device knows it has not yet established connection with the host software, as is the case on startup. In addition, the host software can send a restart message to return the device to this state upon exit. However, in the event that the host software exits unexpectedly*, the device has no way of knowing it is no longer connected.
+The above procedure works fine as long as the device knows it has not yet established connection with the host software, as is the case on startup. In addition, the host software can send a restart message to return the device to this state upon exit. However, in the event that the host software exits unexpectedly*, or if the connected PC goes to sleep, the device has no way of knowing it is no longer connected.
 
 To get around this problem, there are two possible strategies:
 

@@ -46,3 +46,4 @@ A USB volume knob powered by Raspberry Pi Pico, featuring a stylish minimalist l
 - Package up and get running automatically as a background process
 - System tray icon/menu
 - Lock to specific app
+- Optimisation: don't send spectrum/vu data if no music is playing
