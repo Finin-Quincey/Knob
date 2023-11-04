@@ -153,9 +153,9 @@ class HostSerialManager(SerialManager):
             if matching_ports:
                 if len(matching_ports) > 1: log.warn("More than one matching device found, using first match")
                 port = matching_ports[0]
+                log.debug("Successfully identified volume knob device on %s (S/N: %s)", port.name, port.serial_number)
                 self._connect(port.name, BAUD_RATE)
                 if self.serial_connection:
-                    log.debug("Successfully identified volume knob device on %s (S/N: %s)", port.name, port.serial_number)
                     return # Connection successful, we are done
             else:
                 log.debug("No matching devices found")
