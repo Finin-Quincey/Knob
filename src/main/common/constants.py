@@ -5,13 +5,14 @@ File containing various global constants used by the host software, device softw
 """
 
 # Serial comms
+CACHE_FILENAME = "serial.cache"     # Name of the file containing cached connection info
 BAUD_RATE = 115200                  # Baud rate for the serial communication
 COM_PORT = "auto"                   # COM port that the device is connected to, or "auto" to identify automatically
 USB_VID = 11914                     # USB vendor ID for Raspberry Pi
 USB_PID = 5                         # USB product ID for Pico running MicroPython firmware
 DEVICE_ID = 100                     # Unique device identifier to distinguish it from other Picos
-BROADCAST_INTERVAL = 1000           # Time between sending device ID messages, in ms
-CONNECTION_TIMEOUT = 5              # Serial connection timeout, in seconds
+BROADCAST_INTERVAL = 1000           # Time between sending device ID messages, in ms (must be less than connection timeout)
+CONNECTION_TIMEOUT = 2              # Serial connection timeout, in seconds
 RECONNECT_DELAY = 5                 # Time between connection attempts, in seconds
 
 # Logging
