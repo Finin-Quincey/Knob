@@ -123,7 +123,7 @@ class SpotifyHooks():
             self.like_btn = self.like_btn.wrapper_object() # <class 'pywinauto.controls.uia_controls.ButtonWrapper'>
             log.debug(f"Like btn wrapper retrieval took {time.perf_counter() - t:.3f}s")
         except (pywinauto.MatchError, pywinauto.ElementNotFoundError) as e:
-            log.warn("Unable to locate like button in Spotify window; has the UI been updated?\n%s", e)
+            log.warning("Unable to locate like button in Spotify window; has the UI been updated?\n%s", e)
             return
 
         log.debug("Successfully located like button in Spotify window")

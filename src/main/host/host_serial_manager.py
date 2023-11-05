@@ -151,7 +151,7 @@ class HostSerialManager(SerialManager):
             log.debug("Checking connected RP2040 devices for cached serial number (%s)", cache.serial_number)
             matching_ports = [p for p in ports if p.serial_number == cache.serial_number]
             if matching_ports:
-                if len(matching_ports) > 1: log.warn("More than one matching device found, using first match")
+                if len(matching_ports) > 1: log.warning("More than one matching device found, using first match")
                 port = matching_ports[0]
                 log.debug("Successfully identified volume knob device on %s (S/N: %s)", port.name, port.serial_number)
                 self._connect(port.name, BAUD_RATE)
@@ -173,7 +173,7 @@ class HostSerialManager(SerialManager):
                     if port.serial_number:
                         SerialCache(port.serial_number).save(CACHE_FILENAME)
                     else:
-                        log.warn("Device serial number unavailable; caching skipped")
+                        log.warning("Device serial number unavailable; caching skipped")
                     return # Connection successful, we are done
             else:
                 log.debug("Timed out waiting for device ID")
@@ -200,9 +200,9 @@ class HostSerialManager(SerialManager):
         # COM port set manually
         else:
             ports = [p for p in list_ports.comports() if p.name == COM_PORT]
-            if len(ports) > 1: log.warn("More than one COM port found with name %s", COM_PORT)
+            if len(ports) > 1: log.warning("More than one COM port found with name %s", COM_PORT)
             if ports[0].vid != USB_VID or ports[0].pid != USB_PID:
-                log.warn("Device on %s does not match VID and/or PID", COM_PORT)
+                log.warning("Device on %s does not match VID and/or PID", COM_PORT)
             self._connect(COM_PORT)
             
         # If connection failed, raise an exception to avoid entering the context
@@ -220,7 +220,7 @@ class HostSerialManager(SerialManager):
                 return
             except: # Plug was pulled so we can't do anything
                 pass
-        log.warn("Device was physically disconnected; unable to flush serial buffer")
+        log.warning("Device was physically disconnected; unable to flush serial buffer")
 
 
     ### Method Implementations ###
