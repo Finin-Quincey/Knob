@@ -78,7 +78,7 @@ class HostSerialManager(SerialManager):
 
     
     def handle(self, msg, b):
-        log.debug("Received %s (raw bytes: %s)", msg, b)
+        if type(msg) not in MESSAGE_LOG_BLACKLIST: log.debug("Received %s (raw bytes: %s)", msg, b)
         super().handle(msg, b)
 
 
