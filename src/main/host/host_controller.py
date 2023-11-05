@@ -195,15 +195,12 @@ class HostController:
                     else:
                         log.info("Sending device restart...")
                         self.serial_manager.send(msp.DisconnectMessage())
-
-                    time.sleep(0.02)
+                
+                self._post_event(Event.DEVICE_DISCONNECT)
 
             except SerialException:
                 log.info(f"Failed to connect to device; retrying in {RECONNECT_DELAY} seconds")
-                
-            self._post_event(Event.DEVICE_DISCONNECT)
-
-            time.sleep(RECONNECT_DELAY)
+                time.sleep(RECONNECT_DELAY)
 
         log.debug("Host controller exit (exit flag: %s)", self.exit_flag)
         log.info("*** Stopping volume knob host process ***")
