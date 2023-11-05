@@ -14,6 +14,7 @@ DEVICE_ID = 100                     # Unique device identifier to distinguish it
 BROADCAST_INTERVAL = 1000           # Time between sending device ID messages, in ms (must be less than connection timeout)
 CONNECTION_TIMEOUT = 2              # Serial connection timeout, in seconds
 RECONNECT_DELAY = 5                 # Time between connection attempts, in seconds
+SPACE_ASCII = int(" ".encode("utf-8")[0])
 
 # Logging
 TRACE = 5
