@@ -13,9 +13,9 @@ from serial.serialutil import SerialException
 
 from constants import *
 import message_protocol as msp
+from media_manager import MediaManager
 from host_serial_manager import HostSerialManager
 from audio_listener import AudioListener
-from media_manager import MediaManager
 from spotify_hooks import SpotifyHooks
 
 ### Constants ###
