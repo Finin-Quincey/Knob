@@ -27,18 +27,29 @@ _\* Although we can catch most errors and exit cleanly, it is always possible th
 
 ## Core Message Protocol
 
-During normal operation, messages sent between the host and device consist of a single ID byte followed by the message payload.  Two different approaches were considered for determining when to stop reading a message:
+During normal operation, messages sent between the host and device consist of a single ID byte followed by the message payload.  Several different approaches were considered for determining when to stop reading a message:
 
-1. Send a newline char (\n) at the end of each message and use readline() - neat but inefficient  
-   \+ Simple to implement  
-   \+ No need to know the size of messages beforehand  
-   \- Adds 1 byte to every single message  
-2. Define the length of each message at compile-time, then look that up once message type has been determined and
-   read the rest of the message based on that - messier but efficient  
+1. Send a predefined control byte at the end of each message  
+   \+ No need to know the size of messages beforehand (supports variable message lengths)  
+   \+ Able to self-recover if bytes are missed  
+   \- Adds 1 byte to every message  
+   \- No built-in method for reading until a specified byte on the device end, meaning repeated calls to `read(1)`
+   (although this is probably fine for a buffered read)
+   \- Either needs an encoding scheme so control byte is not confused with the message, or reduces usable byte value range by 1  
+2. Send a second byte directly after the message ID specifying the length of the message  
+   \+ Simple to implement and no need for special encoding  
+   \+ Entire payload can be read with a single call to `read()`  
+   \- Adds 2 bytes to every message  
+3. Define the length of each message at compile-time, then look that up once message type has been determined and
+   read the rest of the message based on that  
    \+ No additional bytes need to be sent  
+   \+ Entire payload can be read with a single call to `read()`  
    \- More complex to implement, requires some back-and-forth between serial managers and message_protocol  
+   \- Restricts each type of message to a fixed length  
 
-Since all messages are of known length, option 2 was chosen for its better efficiency.
+Since almost all messages are of known length, option 3 was chosen for its better efficiency.
+
+> Note that PySerial is quite powerful and has built-in support for more advanced features such as parity checking, RTS/CTS and so on. Most of these serve to prevent data loss, syncing issues, etc. - all great things to have, but these are only available on one end of the connection since no MicroPython library exists (that I know of) to implement them. This means I'd likely be writing my own, which is a fun challenge but probably one for another day! As yet I have not experienced any issues just dumbly reading bytes so for this relatively simple application, it may be acceptable.
 
 The protocol itself does not specify the direction a message is to be sent; this distinction is made only by the existence or absence of a handler function for a particular message type on either side. As such, message IDs are universal; both directions share the same set of IDs. A single message type may be sent in both directions so long as a handler is present on both sides; `VolumeMessage` does exactly this. The intended direction of each message is, however, captured in documentation for reference purposes.
 
