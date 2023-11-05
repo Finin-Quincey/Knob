@@ -43,7 +43,7 @@ class MediaManager:
         """
         Returns the system volume, expressed as a fraction between 0 (muted) and 1 (max volume)
         """
-        log.debug("Attempting to get system volume")
+        log.log(TRACE, "Attempting to get system volume")
         return self.system_volume.GetMasterVolumeLevelScalar() # type: ignore
 
 
@@ -60,7 +60,7 @@ class MediaManager:
         """
         Returns True if there is media currently playing, False otherwise
         """
-        log.debug("Attempting to retrieve current playback status")
+        log.log(TRACE, "Attempting to retrieve current playback status")
         return asyncio.run(_is_playing())
 
 
@@ -85,7 +85,7 @@ class MediaManager:
         """
         Returns a dictionary of information about the currently-playing media
         """
-        log.debug("Attempting to retrieve info for the current media")
+        log.log(TRACE, "Attempting to retrieve info for the current media")
         return asyncio.run(_get_media_info())
 
 
