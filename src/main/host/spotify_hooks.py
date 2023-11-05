@@ -8,6 +8,7 @@ from constants import *
 import logging as log
 import pywinauto
 import pywinauto.controls.hwndwrapper
+import time
 
 ### Constants ###
 SPOTIFY_EXE_NAME = "Spotify.exe"
@@ -60,13 +61,17 @@ class SpotifyHooks():
             log.debug("Found Spotify window (process ID %d)", pid)
 
             # Actually try to connect to the Spotify application
+            # Weirdly, we seem to need both backends - uia to get the button and win32 to send keystrokes
+            # This feels like a bad idea but it seems to work just fine
             self.app = pywinauto.application.Application(backend = "uia")
             self.app.connect(process = pid, top_level_only = False)
 
             self.app32 = pywinauto.application.Application(backend = "win32")
             self.app32.connect(process = pid, top_level_only = False)
             
+            t = time.perf_counter()
             self.window = self.app32.top_window().wrapper_object()
+            log.debug(f"Window wrapper retrieval took {time.perf_counter() - t:.3f}s")
 
             log.info("Spotify connection successful")
             break
@@ -93,21 +98,30 @@ class SpotifyHooks():
 
         minimised = self.window.is_minimized()
         if minimised: self.window.restore()
-        
-        #controls_bar = app.Pane.Document.child_window(title_re = "^$", control_type = "Group")#, ctrl_index = 2)
 
         # pywinauto child window search is recursive, so the only reason to use multiple stages is to resolve ambiguity
-        now_playing_group = self.app.Pane.Document.child_window(title_re = "Now playing.*", control_type = "Group")
-        self.like_btn = now_playing_group.child_window(title_re = "(Save to|Remove from) Your Library", control_type = "Button")
+        now_playing_group = self.app.Pane.Document.child_window(control_type = "Group", depth = 2, title_re = "Now playing.*")
+        self.like_btn = now_playing_group.child_window(control_type = "Button", depth = 1, title_re = "(Save to|Remove from) Your Library")
         
+        # Attempt to improve speed by explicitly specifying each level, using ctrl_index is not robust but this is just for testing
+        # This would be pretty difficult to implement in a robust way because the now playing group is stuck inside the toolbar,
+        # which is a group with no title and no class name, making it impossible to identify dynamically... thanks Spotify
+        # This did not speed things up anyway, which implies that the wrapper_object() function is just really slow regardless of
+        # how much you narrow the search down.
+        # toolbar_group = self.app.Pane.Document.child_window(control_type = "Group", ctrl_index = 2, depth = 1)
+        # now_playing_group = toolbar_group.child_window(control_type = "Group", depth = 1, title_re = "Now playing.*")
+        # self.like_btn = now_playing_group.child_window(control_type = "Button", depth = 1, title_re = "(Save to|Remove from) Your Library")
+
         if minimised: self.window.minimize() # Re-minimise window if it was minimised before
 
         # Before this line, like_btn is just a *specification* for the button, i.e. an object describing the button - we haven't
         # actually tried to find it yet. This is actually done using the wrapper_object() method, which is normally called
-        # implicitly (lazily) when access is actually needed. However, this operation is expensive (takes about 1s to complete),
-        # so by calling it explicitly once we avoid having to wait 1s every time we need to query the button text
+        # implicitly (lazily) when access is actually needed. However, this operation is expensive (takes about 2-3s to complete),
+        # so by calling it explicitly once we avoid having to wait 1s every time we need to query the button text.
         try:
+            t = time.perf_counter()
             self.like_btn = self.like_btn.wrapper_object() # <class 'pywinauto.controls.uia_controls.ButtonWrapper'>
+            log.debug(f"Like btn wrapper retrieval took {time.perf_counter() - t:.3f}s")
         except (pywinauto.MatchError, pywinauto.ElementNotFoundError) as e:
             log.warn("Unable to locate like button in Spotify window; has the UI been updated?\n%s", e)
             return
