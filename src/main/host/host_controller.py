@@ -7,6 +7,7 @@ Module responsible for overall control flow on the host end. Runs on host proces
 import os
 import sys
 import time
+import threading
 from enum import Enum
 import logging as log
 from serial.serialutil import SerialException
@@ -172,23 +173,37 @@ class HostController:
     ### Main Program Loop ###
 
     def run(self):
+        """
+        Main host controller program loop. This function is run from the pystray `setup` function once the
+        loop has started, but may also be run as a standalone function for testing purposes.
 
+        This function spawns an additional thread used to update the Spotify connection.
+        
+        #### Returns
+        An `ExitFlag` describing the type of program exit that occurred.
+        """
+
+        # TODO: Start spotify hooks update cycle in separate thread
+        self.spotify_hooks.init()
+
+        # Device reconnect loop
         while(self.exit_flag == ExitFlag.NONE):
 
             log.info("Attempting device connection...")
 
             try:
-
+                # Attempt to initialise device connection (enters context if successful)
                 with self.serial_manager:
 
                     self._post_event(Event.DEVICE_CONNECT)
                     log.info("Device connection successful")
 
+                    # Primary update loop
                     while(self.exit_flag == ExitFlag.NONE):
-
                         self.serial_manager.update()
                         self.audio_listener.update(self.serial_manager, self.media_manager)
 
+                    # Check why the main loop exited and inform the device accordingly
                     if self.exit_flag == ExitFlag.DEV_MODE:
                         log.info("Putting device into development mode...")
                         self.serial_manager.send(msp.ExitMessage())
@@ -201,6 +216,8 @@ class HostController:
             except SerialException:
                 log.info(f"Failed to connect to device; retrying in {RECONNECT_DELAY} seconds")
                 time.sleep(RECONNECT_DELAY)
+
+        # TODO: Join spotify hooks thread
 
         log.debug("Host controller exit (exit flag: %s)", self.exit_flag)
         log.info("*** Stopping volume knob host process ***")
