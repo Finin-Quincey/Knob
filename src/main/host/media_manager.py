@@ -43,7 +43,7 @@ class MediaManager:
         """
         Returns the system volume, expressed as a fraction between 0 (muted) and 1 (max volume)
         """
-        log.log(TRACE, "Attempting to get system volume")
+        log.debug("Attempting to get system volume")
         return self.system_volume.GetMasterVolumeLevelScalar() # type: ignore
 
 
@@ -51,7 +51,7 @@ class MediaManager:
         """
         Sets the system volume to the given value, specified as a fraction between 0 (muted) and 1 (max volume)
         """
-        log.log(TRACE, "Attempting to set volume to %.2f", volume)
+        log.debug("Attempting to set volume to %.2f", volume)
         if volume < 0 or volume > 1: raise ValueError(f"Invalid volume level: {volume}")
         self.system_volume.SetMasterVolumeLevelScalar(volume, None) # type: ignore
 
@@ -60,7 +60,7 @@ class MediaManager:
         """
         Returns True if there is media currently playing, False otherwise
         """
-        log.log(TRACE, "Attempting to retrieve current playback status")
+        log.debug("Attempting to retrieve current playback status")
         return asyncio.run(_is_playing())
 
 
@@ -68,7 +68,7 @@ class MediaManager:
         """
         Attempts to toggle the playback of the current media
         """
-        log.log(TRACE, "Attempting to toggle playback")
+        log.debug("Attempting to toggle playback")
         return asyncio.run(_toggle_playback())
 
 
@@ -76,7 +76,7 @@ class MediaManager:
         """
         Attempts to skip to the next (default) or previous track and returns True if successful
         """
-        log.log(TRACE, "Attempting to skip %s", "forawrd" if forward else "backward")
+        log.debug("Attempting to skip %s", "forawrd" if forward else "backward")
         if forward: return asyncio.run(_skip_forward())
         else: return asyncio.run(_skip_backward())
 
@@ -85,7 +85,7 @@ class MediaManager:
         """
         Returns a dictionary of information about the currently-playing media
         """
-        log.log(TRACE, "Attempting to retrieve info for the current media")
+        log.debug("Attempting to retrieve info for the current media")
         return asyncio.run(_get_media_info())
 
 
