@@ -9,6 +9,7 @@ import sys
 
 from constants import * # Usually considered bad practice but here I think it improves readability
 
+import device_logger as log
 from led_ring import LedRing
 from rotary_encoder import Encoder
 
@@ -87,6 +88,7 @@ def run():
             update_loop()
 
     except Exception as e:
+        log.critical(f"{type(e).__name__}: {e}")
         leds.set_colour((0, 255, 255))
         leds.update()
         utime.sleep(1)

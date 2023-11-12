@@ -15,6 +15,7 @@ import utime
 
 from constants import *
 
+import device_logger as log
 import device_controller as device
 import message_protocol as msp
 
@@ -243,6 +244,7 @@ def set_state(new_state):
     """
     global _current_state
     if new_state == _current_state: return
+    log.debug(f"Entering state: {type(new_state).__name__}")
     _current_state = new_state
 
 

@@ -2,7 +2,7 @@
 Device Logger
 
 Helper functions for sending device-side log messages to the host program. This is a lightweight
-device-side replacement for logging module available in standard Python. Aside from sending the
+device-side replacement for the logging module available in standard Python. Aside from sending the
 messages over serial comms (and resulting char limit), the functions behave in much the same way.
 """
 
