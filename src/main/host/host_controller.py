@@ -200,6 +200,18 @@ class HostController:
 
                     # Primary update loop
                     while(self.exit_flag == ExitFlag.NONE):
+                        # FIXME: Right now the program gets stuck if the device enters an error condition,
+                        # and can no longer update or receive messages. This is because the serial write
+                        # on the host side is blocking until the device receives it, and by default there
+                        # is no timeout (the device-side write must be non-blocking, since ID broadcasting
+                        # works just fine). There are 3 possible solutions to this:
+                        # 1. Set a timeout on host-side write operations (via Serial constructor)
+                        # 2. Have the device continue to read serial data, even in error condition
+                        # 3. Have the device send a message indicating the error state, so the host can
+                        #    detect it and stop sending serial comms
+                        # Really the first option is the only way of not relying on the device at all. Note
+                        # that this will raise a SerialTimeoutException on timeout, but if the device
+                        # errored then that is probably an acceptable outcome anyway.
                         self.serial_manager.update()
                         self.audio_listener.update(self.serial_manager, self.media_manager)
 
