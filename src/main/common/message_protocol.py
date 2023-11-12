@@ -68,6 +68,40 @@ class Message:
         pass
 
 
+class LogMessage(Message):
+    """
+    Message sent to log a device-side event to the host side output stream(s).
+    
+    Direction: Device -> Host
+    
+    Additional data:
+    - level (1 byte, representing the integer logging level as defined in the logging module)
+    - msg (62 bytes, representing the UTF-8 encoded log message)
+
+    ---
+    Due to the fixed-length message system, this message must always contain the same number of bytes.
+    The input string will be truncated or padded with spaces to make it exactly 62 bytes long. Trailing
+    spaces should be removed on the receiving end before logging the message.
+    """
+    def __init__(self, level = 0, msg = ""):
+        super().__init__(size = 63)
+        self.level = level
+        self.msg = msg
+
+    def to_bytes(self, data: list) -> list:
+        data.append(self.level)
+        # Seems a bit silly to go from string to bytes to ints and then back to bytes but we've set things up
+        # that way now! Maybe in future we'll change it so these functions handle raw bytes objects...
+        chars = self.msg.encode("utf-8")
+        for i in range(62):
+            data.append(int(chars[i]) if i < len(chars) else SPACE_ASCII)
+        return data
+
+    def from_bytes(self, data: list):
+        self.level = data.pop(0)
+        self.msg = bytes(data).decode("utf-8").rstrip() # data should only contain the msg string now
+
+
 class VolumeRequestMessage(Message):
     """
     Message sent to request the current volume from the host.
@@ -291,6 +325,7 @@ def msg_from_id(id_byte: bytes) -> Message:
 
 
 # Message registry
+register(LogMessage)
 register(VolumeRequestMessage)
 register(VolumeMessage)
 register(TogglePlaybackMessage)

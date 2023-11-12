@@ -81,6 +81,7 @@ class HostController:
 
         # Register message handlers
         log.info("Registering message handlers")
+        self.serial_manager.register_handler(msp.LogMessage,             self.handle_log_msg)
         self.serial_manager.register_handler(msp.VolumeRequestMessage,   self.handle_vol_request_msg)
         self.serial_manager.register_handler(msp.VolumeMessage,          self.handle_vol_change_msg)
         self.serial_manager.register_handler(msp.TogglePlaybackMessage,  self.handle_toggle_playback_msg)
@@ -109,6 +110,11 @@ class HostController:
         
 
     ### Handlers ###
+
+    def handle_log_msg(self, msg: msp.LogMessage):
+        # Log the device message to the main logger, with prefix to indicate where it came from
+        log.log(msg.level, "[DEVICE] " + msg.msg)
+
 
     def handle_vol_request_msg(self, msg: msp.VolumeRequestMessage):
         # Get current system volume
