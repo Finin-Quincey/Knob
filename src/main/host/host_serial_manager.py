@@ -102,7 +102,7 @@ class HostSerialManager(SerialManager):
         # Accepting the port name as a string rather than a ListPortInfo so it can be called without listing ports
         log.debug("Attempting to initialise serial connection on %s at %i baud", com_port, baud_rate)
         try:
-            self.serial_connection = serial.Serial(com_port, baud_rate, timeout = CONNECTION_TIMEOUT)
+            self.serial_connection = serial.Serial(com_port, baud_rate, timeout = CONNECTION_TIMEOUT, write_timeout = CONNECTION_TIMEOUT)
         except SerialException:
             # There may be a case in which we're trying to connect to the wrong Pico and for some reason it won't
             # connect (e.g. it's already in use by some other program) - in this case, we don't want to abort
@@ -217,15 +217,18 @@ class HostSerialManager(SerialManager):
     
 
     def __exit__(self, exc_type, exc_value, traceback):
-        if self.serial_connection:
-            try:
-                self.serial_connection.flush()
-                time.sleep(0.5) # Give any remaining messages time to send (flush often doesn't work properly)
-                self.serial_connection.close()
-                return
-            except: # Plug was pulled so we can't do anything
-                pass
-        log.warning("Device was physically disconnected; unable to flush serial buffer")
+        
+        if not self.serial_connection:
+            log.error("Null serial object") # Should not happen!
+            return
+        
+        try:
+            self.serial_connection.flush()
+            time.sleep(0.5) # Give any remaining messages time to send (flush often doesn't work properly)
+        except SerialException: # Plug was pulled or device errored so we can't do anything
+            log.warning("Unable to flush serial buffer")
+        finally:
+            self.serial_connection.close()
 
 
     ### Method Implementations ###

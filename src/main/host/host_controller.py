@@ -186,32 +186,24 @@ class HostController:
         # TODO: Start spotify hooks update cycle in separate thread
         self.spotify_hooks.init()
 
-        # Device reconnect loop
+        ### Device reconnect loop ###
+
         while(self.exit_flag == ExitFlag.NONE):
 
             log.info("Attempting device connection...")
+
+            connect_success = False # Flag to distinguish between failure to connect and unexpected disconnect
 
             try:
                 # Attempt to initialise device connection (enters context if successful)
                 with self.serial_manager:
 
+                    connect_success = True
                     self._post_event(Event.DEVICE_CONNECT)
                     log.info("Device connection successful")
 
                     # Primary update loop
                     while(self.exit_flag == ExitFlag.NONE):
-                        # FIXME: Right now the program gets stuck if the device enters an error condition,
-                        # and can no longer update or receive messages. This is because the serial write
-                        # on the host side is blocking until the device receives it, and by default there
-                        # is no timeout (the device-side write must be non-blocking, since ID broadcasting
-                        # works just fine). There are 3 possible solutions to this:
-                        # 1. Set a timeout on host-side write operations (via Serial constructor)
-                        # 2. Have the device continue to read serial data, even in error condition
-                        # 3. Have the device send a message indicating the error state, so the host can
-                        #    detect it and stop sending serial comms
-                        # Really the first option is the only way of not relying on the device at all. Note
-                        # that this will raise a SerialTimeoutException on timeout, but if the device
-                        # errored then that is probably an acceptable outcome anyway.
                         self.serial_manager.update()
                         self.audio_listener.update(self.serial_manager, self.media_manager)
 
@@ -222,12 +214,26 @@ class HostController:
                     else:
                         log.info("Sending device restart...")
                         self.serial_manager.send(msp.DisconnectMessage())
-                
-                self._post_event(Event.DEVICE_DISCONNECT)
 
-            except SerialException:
-                log.info(f"Failed to connect to device; retrying in {RECONNECT_DELAY} seconds")
-                time.sleep(RECONNECT_DELAY)
+            except SerialException: # Catch all types of serial exception including write timeout
+
+                if connect_success:
+                    # If we were connected i.e. unexpected disconnect occurred
+                    # This is probably due to a device-side error or physical disconnect
+                    # In the case of a physical disconnect, write AND read both fail (and which one it
+                    # is will depend on where the program was at that point)
+                    # In the case of device error, only the write will fail (with a timeout error)
+                    log.info(f"Device disconnected unexpectedly; reconnecting in {RECONNECT_DELAY} seconds")
+                else:
+                    # If we were unable to connect in the first place
+                    log.info(f"Failed to connect to device; retrying in {RECONNECT_DELAY} seconds")
+                    
+                time.sleep(RECONNECT_DELAY) # Don't delay reconnection if disconnect was intentional
+
+            # Post disconnect event unless we weren't connected in the first place
+            if connect_success: self._post_event(Event.DEVICE_DISCONNECT)
+
+        ### Program exit sequence ###
 
         # TODO: Join spotify hooks thread
 
