@@ -11,6 +11,7 @@ from serial.serialutil import SerialException
 import logging as log
 import os
 import pickle
+import time
 
 from constants import *
 from serial_manager import SerialManager
@@ -208,7 +209,10 @@ class HostSerialManager(SerialManager):
         # If connection failed, raise an exception to avoid entering the context
         if not self.serial_connection: raise SerialException("Unable to connect to volume knob over USB")
         # Otherwise, clear out any bytes that are still in the input stream and proceed to context
-        self.serial_connection.flush()
+        # Note that flush(), reset_input_buffer() and reset_output_buffer() all do different things
+        # I had assumed that flush() clears both buffers - turns out it does neither! It simply waits until
+        # the output buffer is empty. See https://stackoverflow.com/questions/61596242/pyserial-when-should-i-use-flush
+        self.serial_connection.reset_input_buffer()
         return self
     
 
@@ -216,6 +220,7 @@ class HostSerialManager(SerialManager):
         if self.serial_connection:
             try:
                 self.serial_connection.flush()
+                time.sleep(0.5) # Give any remaining messages time to send (flush often doesn't work properly)
                 self.serial_connection.close()
                 return
             except: # Plug was pulled so we can't do anything
