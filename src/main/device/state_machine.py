@@ -57,7 +57,7 @@ class StartupState(State):
         # Send regular device ID messages
         if utime.ticks_ms() - self.last_broadcast_time > BROADCAST_INTERVAL:
             self.last_broadcast_time = utime.ticks_ms()
-            device.serial_manager.send_id()
+            device.serial_manager.send(msp.IDMessage(DEVICE_TYPE_ID))
         
         rotation = int(PIXEL_COUNT * utime.ticks_ms() / STARTUP_ANIMATION_PERIOD) % PIXEL_COUNT
 

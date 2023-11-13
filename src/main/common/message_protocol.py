@@ -68,6 +68,28 @@ class Message:
         pass
 
 
+class IDMessage(Message):
+    """
+    Message sent by the device to identify itself to the host program during device discovery.
+    
+    Direction: Device -> Host
+    
+    Additional data:
+    - id (1 byte, representing the device type identifier unique to volume knob devices)
+    """
+
+    def __init__(self, id = 0):
+        super().__init__(size = 1)
+        self.id = id
+
+    def to_bytes(self, data: list) -> list:
+        data.append(self.id)  # type: ignore
+        return data
+
+    def from_bytes(self, data: list):
+        self.id = data.pop(0)
+
+
 class LogMessage(Message):
     """
     Message sent to log a device-side event to the host side output stream(s).
@@ -325,6 +347,7 @@ def msg_from_id(id_byte: bytes) -> Message:
 
 
 # Message registry
+register(IDMessage)
 register(LogMessage)
 register(VolumeRequestMessage)
 register(VolumeMessage)

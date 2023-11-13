@@ -163,22 +163,30 @@ class HostSerialManager(SerialManager):
                 log.debug("No matching devices found")
                 
         # If we were unable to identify the device directly, fall back to listening for ID
-        log.debug("Unable to identify device by serial number; listening for IDs instead")
+        log.debug("Unable to identify device by serial number; listening for device type IDs instead")
         for port in ports:
             self._connect(port.name)
             if not self.serial_connection: continue # Connection failed, try the next port
-            bytes = self.serial_connection.read(1) # Wait to receive ID or timeout
-            if len(bytes) > 0: # If we received something
-                log.debug("Received device ID: %d", int(bytes[0]))
-                if bytes[0] == DEVICE_ID: # Check ID matches
-                    log.debug("Successfully identified volume knob device on %s (S/N: %s)", port.name, port.serial_number)
-                    if port.serial_number:
-                        SerialCache(port.serial_number).save(CACHE_FILENAME)
-                    else:
-                        log.warning("Device serial number unavailable; caching skipped")
-                    return # Connection successful, we are done
-            else:
+            # Wait to receive device ID message or timeout
+            # Because the host read() implementation is blocking, calling this directly should wait
+            # until a message is received (or until read timeout)
+            try:
+                msg, b = self.read_next_msg()
+                if isinstance(msg, msp.IDMessage):
+                    log.debug("Received device type ID: %d", msg.id)
+                    if msg.id == DEVICE_TYPE_ID: # Check ID matches
+                        log.debug("Successfully identified volume knob device on %s (S/N: %s)", port.name, port.serial_number)
+                        if port.serial_number:
+                            SerialCache(port.serial_number).save(CACHE_FILENAME)
+                        else:
+                            log.warning("Device serial number unavailable; caching skipped")
+                        return # Connection successful, we are done
+                else:
+                    log.warning("Received unexpected message while listening for device type ID: %s (raw bytes %s)", type(msg), b)
+           
+            except SerialException:
                 log.debug("Timed out waiting for device ID")
+            
             self.serial_connection.flush()
             self.serial_connection.close()
             # Otherwise try the next pico, if there is one
@@ -243,4 +251,8 @@ class HostSerialManager(SerialManager):
     def read(self, n: int):
         if not self.serial_connection: return None
         log.log(TRACE, "Attempting to read %i bytes", n)
-        return self.serial_connection.read(n) if self.serial_connection.in_waiting else None
+        return self.serial_connection.read(n)
+    
+    def bytes_waiting(self) -> bool:
+        if not self.serial_connection: return False
+        return self.serial_connection.in_waiting > 0
