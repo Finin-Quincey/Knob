@@ -30,7 +30,7 @@ class DeviceSerialManager(SerialManager):
     def send(self, msg: msp.Message):
         sys.stdout.buffer.write(msg.encode()) # type: ignore
 
-    def read(self, n: int):
+    def read(self, n: int) -> bytes:
         # TODO: Check how this responds if the number of bytes available is not zero but is less than n
         #       In theory we shouldn't encounter this problem since we only read more than 1 byte when we know there is a
         #       message there (and how many bytes it should contain), but for robustness it would be good to nail this down

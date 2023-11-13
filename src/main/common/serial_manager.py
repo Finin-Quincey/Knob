@@ -44,20 +44,20 @@ class SerialManager():
         Called from the main program loop to update the serial manager.
         """
         while self.bytes_waiting(): # Keep reading messages until there are none waiting
-            msg, b = self.read_next_msg()
-            self.handle(msg, b)
+            msg, raw = self.read_next_msg()
+            self.handle(msg, raw)
 
         
-    def read_next_msg(self):
+    def read_next_msg(self) -> tuple[msp.Message, bytes]:
         """
         Reads a single message from the input buffer and returns the resulting message object.
         
         #### Returns
         - `msg`: The resulting `Message` object.
-        - `b`: A list of values representing the raw bytes that were read, for logging purposes.
+        - `raw`: The raw `bytes` object, for logging purposes.
         """
         id = self.read(1) # Read the first byte from the input - this should be the message ID
-        b = [id]
+        raw = id # Need to set this here in case the message has no additional data
 
         # Reconstruct message object
         msg = msp.msg_from_id(id)
@@ -68,13 +68,12 @@ class SerialManager():
             if not data_bytes: raise_msg_error(msg, 0)
             if len(data_bytes) < msg.size: raise_msg_error(msg, len(data_bytes))
             msg.decode(data_bytes)
-            b = list(data_bytes)
-            b.insert(0, id)
+            raw += data_bytes
 
-        return msg, b
+        return msg, raw
 
     
-    def handle(self, msg, b):
+    def handle(self, msg: msp.Message, raw: bytes):
         """
         Call the handler (if it exists) for this type of message to do whatever it needs to do
         Subclasses may extend functionality with e.g. logging
@@ -99,7 +98,7 @@ class SerialManager():
         raise NotImplementedError("Attempted to call send() for the base SerialManager class")
 
         
-    def read(self, n: int):
+    def read(self, n: int) -> bytes:
         """
         Reads and returns n bytes from the serial input buffer.
         

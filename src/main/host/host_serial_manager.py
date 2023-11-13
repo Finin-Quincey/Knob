@@ -12,6 +12,7 @@ import logging as log
 import os
 import pickle
 import time
+import binascii
 
 from constants import *
 from serial_manager import SerialManager
@@ -79,9 +80,24 @@ class HostSerialManager(SerialManager):
         log.debug("Registered new handler for %s", message_type)
 
     
-    def handle(self, msg, b):
-        if type(msg) not in MESSAGE_LOG_BLACKLIST: log.debug("Received %s (raw bytes: %s)", msg, b)
-        super().handle(msg, b)
+    def handle(self, msg: msp.Message, raw: bytes):
+        if type(msg) not in MESSAGE_LOG_BLACKLIST:
+            log.debug("Received %s (raw bytes: %s)", msg, self._format_bytes(raw))
+        super().handle(msg, raw)
+
+    
+    def _format_bytes(self, raw: bytes) -> str:
+        """
+        [Internal] Formats the given raw bytes as a hex string.
+        
+        #### Parameters
+        ##### Required
+        - `raw`: The bytes to format
+        
+        #### Returns
+        The resulting hex string.
+        """
+        return binascii.hexlify(raw, sep = " ").decode("utf-8")
 
 
     ### Serial Helper Methods ###
@@ -171,7 +187,7 @@ class HostSerialManager(SerialManager):
             # Because the host read() implementation is blocking, calling this directly should wait
             # until a message is received (or until read timeout)
             try:
-                msg, b = self.read_next_msg()
+                msg, raw = self.read_next_msg()
                 if isinstance(msg, msp.IDMessage):
                     log.debug("Received device type ID: %d", msg.id)
                     if msg.id == DEVICE_TYPE_ID: # Check ID matches
@@ -182,7 +198,8 @@ class HostSerialManager(SerialManager):
                             log.warning("Device serial number unavailable; caching skipped")
                         return # Connection successful, we are done
                 else:
-                    log.warning("Received unexpected message while listening for device type ID: %s (raw bytes %s)", type(msg), b)
+                    log.warning("Received unexpected message while listening for device type ID: %s (raw bytes %s)",
+                                type(msg), self._format_bytes(raw))
            
             except SerialException:
                 log.debug("Timed out waiting for device ID")
@@ -244,9 +261,10 @@ class HostSerialManager(SerialManager):
 
     def send(self, msg: msp.Message):
         if not self.serial_connection: return
-        b = msg.encode()
-        if type(msg) not in MESSAGE_LOG_BLACKLIST: log.debug("Sending %s (raw bytes: %s)", type(msg), b)
-        self.serial_connection.write(b)
+        raw = msg.encode()
+        if type(msg) not in MESSAGE_LOG_BLACKLIST:
+            log.debug("Sending %s (raw bytes: %s)", type(msg), self._format_bytes(raw))
+        self.serial_connection.write(raw)
 
     def read(self, n: int):
         if not self.serial_connection: return None
