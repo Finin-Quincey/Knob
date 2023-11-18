@@ -5,9 +5,13 @@ Host code entry point. Responsible for the system tray icon/menu, as well as int
 the program.
 """
 
+import os
+
 import pystray
 from PIL import Image
+
 from host.host_controller import HostController, ExitFlag, Event
+from constants import *
 
 
 ### Globals ###
@@ -104,7 +108,7 @@ menu = pystray.Menu(
     ),
     pystray.MenuItem(
         text = "View Logs",
-        action = lambda icon, item: print(f"{item} clicked")
+        action = lambda icon, item: os.startfile(LOGS_DIRECTORY) # type: ignore
     ),
     pystray.Menu.SEPARATOR,
     pystray.MenuItem(
