@@ -61,7 +61,7 @@ def run_host_process(icon):
     update_device_status(False)
     update_spotify_status(False)
 
-    while(True):
+    while True:
 
         # Register host process callbacks
         controller.set_callback(Event.DEVICE_CONNECT,       connect_callback)

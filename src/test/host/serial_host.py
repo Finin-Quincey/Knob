@@ -15,12 +15,12 @@ ser = serial.Serial(COM_PORT, BAUD_RATE, timeout = 5)#, parity = serial.PARITY_E
 
 # This essentially allows you to debug the serial comms!
 # (ampy run won't work for debugging serial since it requires full use of the serial port itself)
-while(True):
+while True:
     b = ser.readline()
     print(b)
     if not b: break
 
-# while(True):
+# while True:
 
 #     try:
 #         msg = bytes([int(input("Enter number: "))])
@@ -29,14 +29,14 @@ while(True):
 #         #msg = [0b10001010, 0b00100001, 0b00101101]
 #         n = ser.write(msg)#str(msg, "utf-16"))
 #         print(f"Sent {n} bytes: {str(msg)}")
-#     except(EOFError):
+#     except EOFError:
 #         break
 
 #     time.sleep(0.1)
 
 #     # This essentially allows you to debug the serial comms!
 #     # (ampy run won't work for debugging serial since it requires full use of the serial port itself)
-#     while(True):
+#     while True:
 #         b = ser.readline()
 #         print(b)
 #         if not b: break

@@ -194,7 +194,7 @@ class HostController:
 
         ### Device reconnect loop ###
 
-        while(self.exit_flag == ExitFlag.NONE):
+        while self.exit_flag == ExitFlag.NONE:
 
             log.info("Attempting device connection...")
 
@@ -209,7 +209,7 @@ class HostController:
                     log.info("Device connection successful")
 
                     # Primary update loop
-                    while(self.exit_flag == ExitFlag.NONE):
+                    while self.exit_flag == ExitFlag.NONE:
                         self.serial_manager.update()
                         self.audio_listener.update(self.serial_manager, self.media_manager)
 

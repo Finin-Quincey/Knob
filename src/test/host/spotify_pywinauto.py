@@ -77,7 +77,7 @@ for pid, exe_path, _ in pywinauto.application._process_get_modules_wmi():
 
     #w.send_keystrokes("%+b")
 
-    while(True):
+    while True:
         time.sleep(1)
         print("Current song liked" if like_btn.get_toggle_state() else "Current song not liked")
 
