@@ -4,6 +4,7 @@ Media Manager
 Contains functions for interacting with the system volume and playback controls.
 """
 
+import time
 import asyncio
 import logging as log
 from constants import *
@@ -61,7 +62,7 @@ class MediaManager:
         Returns True if there is media currently playing, False otherwise
         """
         log.log(TRACE, "Attempting to retrieve current playback status")
-        return asyncio.run(_is_playing())
+        return _run_with_timer(_is_playing)
 
 
     def toggle_playback(self) -> bool:
@@ -69,7 +70,7 @@ class MediaManager:
         Attempts to toggle the playback of the current media
         """
         log.debug("Attempting to toggle playback")
-        return asyncio.run(_toggle_playback())
+        return _run_with_timer(_toggle_playback)
 
 
     def skip(self, forward = True) -> bool:
@@ -77,8 +78,8 @@ class MediaManager:
         Attempts to skip to the next (default) or previous track and returns True if successful
         """
         log.debug("Attempting to skip %s", "forawrd" if forward else "backward")
-        if forward: return asyncio.run(_skip_forward())
-        else: return asyncio.run(_skip_backward())
+        if forward: return _run_with_timer(_skip_forward)
+        else: return _run_with_timer(_skip_backward)
 
 
     def get_media_info(self) -> dict:
@@ -86,10 +87,17 @@ class MediaManager:
         Returns a dictionary of information about the currently-playing media
         """
         log.log(TRACE, "Attempting to retrieve info for the current media")
-        return asyncio.run(_get_media_info())
+        return _run_with_timer(_get_media_info)
 
 
 ### Internal Functions ###
+
+def _run_with_timer(func):
+    t = time.perf_counter()
+    result = asyncio.run(func())
+    log.log(TRACE, f"{func.__name__}() took {time.perf_counter() - t:.3f}s")
+    return result
+
 
 async def _is_playing() -> bool:
     """

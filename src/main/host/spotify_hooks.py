@@ -63,11 +63,15 @@ class SpotifyHooks():
             # Actually try to connect to the Spotify application
             # Weirdly, we seem to need both backends - uia to get the button and win32 to send keystrokes
             # This feels like a bad idea but it seems to work just fine
+            t = time.perf_counter()
             self.app = pywinauto.application.Application(backend = "uia")
             self.app.connect(process = pid, top_level_only = False)
+            log.log(TRACE, f"uia connection took {time.perf_counter() - t:.3f}s")
 
+            t = time.perf_counter()
             self.app32 = pywinauto.application.Application(backend = "win32")
             self.app32.connect(process = pid, top_level_only = False)
+            log.log(TRACE, f"win32 connection took {time.perf_counter() - t:.3f}s")
             
             t = time.perf_counter()
             self.window = self.app32.top_window().wrapper_object()

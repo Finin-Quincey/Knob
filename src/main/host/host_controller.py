@@ -7,7 +7,6 @@ Module responsible for overall control flow on the host end. Runs on host proces
 import os
 import sys
 import time
-import threading
 from enum import Enum
 import logging as log
 from serial.serialutil import SerialException
@@ -208,10 +207,19 @@ class HostController:
                     self._post_event(Event.DEVICE_CONNECT)
                     log.info("Device connection successful")
 
+                    i = 0
+                    t = time.perf_counter()
+
                     # Primary update loop
                     while self.exit_flag == ExitFlag.NONE:
                         self.serial_manager.update()
                         self.audio_listener.update(self.serial_manager, self.media_manager)
+                        if i == 0:
+                            i = 1000
+                            elapsed = time.perf_counter() - t
+                            log.log(TRACE, f"1000 main loop cycles took {elapsed:.3f}s ({1000/elapsed}Hz)")
+                            t = time.perf_counter()
+                        i -= 1
 
                     # Check why the main loop exited and inform the device accordingly
                     if self.exit_flag == ExitFlag.DEV_MODE:
