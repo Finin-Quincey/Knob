@@ -9,11 +9,13 @@ import logging as log
 import pywinauto
 import pywinauto.controls.hwndwrapper
 import time
+import threading
 
 ### Constants ###
 SPOTIFY_EXE_NAME = "Spotify.exe"
 ESCAPE_KEY = "{ESC}"
 LIKE_KEYBOARD_SHORTCUT = "%+b"
+UPDATE_INTERVAL = 1
 
 
 class SpotifyHooks():
@@ -23,17 +25,48 @@ class SpotifyHooks():
         self.app32 = None
         self.window = None
         self.like_btn = None
+        self.running = False
+        self.current_liked_status = False
+        self.toggle_request_flag = False
 
 
-    def init(self):
+    def __enter__(self):
         """
-        Initialises the Spotify hooks.
+        Initialises the Spotify hooks and starts the worker thread.
         """
-        self.attempt_spotify_connection()
-        self.locate_like_btn()
+        log.info("Starting Spotify hooks thread")
+        self._thread = threading.Thread(target = self.run, name = "Spotify hooks thread")
+        self.running = True
+        self._thread.start()
+
+    
+    def __exit__(self, exc_type, exc_value, traceback):
+        """
+        Performs finalisation of Spotify hooks and shuts down the worker thread.
+        """
+        log.info("Stopping Spotify hooks thread")
+        self.running = False # Tell run loop to stop at the end of this iteration (atomic)
+        self._thread.join() # Wait for current loop iteration to end
 
 
-    def attempt_spotify_connection(self):
+    def run(self):
+        """
+        Spotify hooks thread run target. Handles the main update loop, periodically checking the connection.
+        """
+        last_update = time.time()
+        while self.running:
+            if time.time() - last_update > UPDATE_INTERVAL:
+                if self._check_spotify_connection():
+                    self._update_liked_status()
+                else:
+                    self._attempt_spotify_connection()
+                    self._locate_like_btn()
+                last_update = time.time()
+            self._check_toggle_request()
+            time.sleep(0.05)
+
+
+    def _attempt_spotify_connection(self):
         """
         Attempts to find and connect to the Spotify GUI application.
         """
@@ -84,7 +117,7 @@ class SpotifyHooks():
             break
 
 
-    def check_spotify_connection(self) -> bool:
+    def _check_spotify_connection(self) -> bool:
         """
         Checks that the spotify connection is still valid.
         """
@@ -95,9 +128,9 @@ class SpotifyHooks():
         return False
 
 
-    def locate_like_btn(self):
+    def _locate_like_btn(self):
 
-        if not self.check_spotify_connection(): return
+        if not self._check_spotify_connection(): return
 
         # Just to make pylance stop complaining, for some reason it won't recognise that we checked this above
         assert self.app
@@ -107,8 +140,14 @@ class SpotifyHooks():
         if minimised: self.window.restore()
 
         # pywinauto child window search is recursive, so the only reason to use multiple stages is to resolve ambiguity
-        now_playing_group = self.app.Pane.Document.child_window(control_type = "Group", depth = 2, title_re = "Now playing.*")
-        self.like_btn = now_playing_group.child_window(control_type = "Button", depth = 1, title_re = "(Save to|Remove from) Your Library")
+        #now_playing_group = self.app.Pane.Document.child_window(control_type = "Group", depth = 2, title_re = "Now playing.*")
+        #self.like_btn = now_playing_group.child_window(control_type = "Button", depth = 1, title_re = "(Save to|Remove from) Your Library")
+
+        self.like_btn = self.app.Pane.Document.child_window(control_type = "Button", depth = 3, title_re = "Add to (Liked Songs|playlist)", found_index = 0)
+
+        #self.status_bar = self.app.Pane.Document.child_window(control_type = "StatusBar", title_re = "(Added to|Removed from) Liked Songs\.StatusBar")
+
+        #self.app.Pane.print_ctrl_ids(filename = "ctrl_ids.txt")
         
         # Attempt to improve speed by explicitly specifying each level, using ctrl_index is not robust but this is just for testing
         # This would be pretty difficult to implement in a robust way because the now playing group is stuck inside the toolbar,
@@ -136,21 +175,24 @@ class SpotifyHooks():
         log.debug("Successfully located like button in Spotify window")
 
 
-    def is_current_song_liked(self) -> bool:
+    def _update_liked_status(self):
         """
-        Returns True if the current song is liked, False if not.
+        [Internal] Called each update cycle to check the liked status of the current song.
         """
+        # This may be a bit overkill but at least this way we always have a status available without needing two-way comms between threads.
+        #print(self.status_bar.exists())
+
         # Spotify somehow managed to break the toggle state function with one of their updates so now we have to read the button text
         # Matching part of the text and not case-sensitive to try and be as robust as possible to text changes
-        return self.like_btn is not None and "remove" in self.like_btn.window_text().lower()
-        #return like_btn is not None and like_btn.get_toggle_state()
+        self.current_liked_status = self.like_btn is not None and "playlist" in self.like_btn.window_text().lower()
+        #return like_btn is not None and like_btn.get_toggle_state() # Old version
 
 
-    def toggle_liked_status(self):
+    def _check_toggle_request(self):
         """
-        Toggles the liked status of the current song.
+        [Internal] Checks if there is an outstanding like toggle request and if so, executes it.
         """
-        if not self.check_spotify_connection(): return
+        if not self.toggle_request_flag: return
 
         assert self.app
         assert self.window
@@ -164,3 +206,25 @@ class SpotifyHooks():
         self.window.send_keystrokes(ESCAPE_KEY)
         self.window.send_keystrokes(LIKE_KEYBOARD_SHORTCUT)
         if minimised: self.window.minimize() # Re-minimise the window if it was minimised previously
+
+        self.toggle_request_flag = False
+
+        log.debug("Toggled liked status of current song")
+
+
+    ### External Methods ###
+
+    def is_current_song_liked(self) -> bool:
+        """
+        Returns True if the current song is liked, False if not.
+        """
+        return self.current_liked_status
+
+
+    def toggle_liked_status(self):
+        """
+        Toggles the liked status of the current song.
+        """
+        if self.toggle_request_flag: log.warn("Received a toggle request before the last one was executed!")
+        self.toggle_request_flag = True
+        log.debug("Like status toggle requested")

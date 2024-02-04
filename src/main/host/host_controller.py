@@ -188,68 +188,65 @@ class HostController:
         An `ExitFlag` describing the type of program exit that occurred.
         """
 
-        # TODO: Start spotify hooks update cycle in separate thread
-        self.spotify_hooks.init()
+        with self.spotify_hooks: # Start spotify hooks thread (will join main thread when with block exits)
 
-        ### Device reconnect loop ###
+            ### Device reconnect loop ###
 
-        while self.exit_flag == ExitFlag.NONE:
+            while self.exit_flag == ExitFlag.NONE:
 
-            log.info("Attempting device connection...")
+                log.info("Attempting device connection...")
 
-            connect_success = False # Flag to distinguish between failure to connect and unexpected disconnect
+                connect_success = False # Flag to distinguish between failure to connect and unexpected disconnect
 
-            try:
-                # Attempt to initialise device connection (enters context if successful)
-                with self.serial_manager:
+                try:
+                    # Attempt to initialise device connection (enters context if successful)
+                    with self.serial_manager:
 
-                    connect_success = True
-                    self._post_event(Event.DEVICE_CONNECT)
-                    log.info("Device connection successful")
+                        connect_success = True
+                        self._post_event(Event.DEVICE_CONNECT)
+                        log.info("Device connection successful")
 
-                    i = 0
-                    t = time.perf_counter()
+                        i = 0
+                        t = time.perf_counter()
 
-                    # Primary update loop
-                    while self.exit_flag == ExitFlag.NONE:
-                        self.serial_manager.update()
-                        self.audio_listener.update(self.serial_manager, self.media_manager)
-                        if i == 0:
-                            i = 1000
-                            elapsed = time.perf_counter() - t
-                            log.log(TRACE, f"1000 main loop cycles took {elapsed:.3f}s ({1000/elapsed}Hz)")
-                            t = time.perf_counter()
-                        i -= 1
+                        # Primary update loop
+                        while self.exit_flag == ExitFlag.NONE:
+                            self.serial_manager.update()
+                            self.audio_listener.update(self.serial_manager, self.media_manager)
+                            if i == 0:
+                                i = 1000
+                                elapsed = time.perf_counter() - t
+                                log.log(TRACE, f"1000 main loop cycles took {elapsed:.3f}s ({1000/elapsed}Hz)")
+                                t = time.perf_counter()
+                            i -= 1
 
-                    # Check why the main loop exited and inform the device accordingly
-                    if self.exit_flag == ExitFlag.DEV_MODE:
-                        log.info("Putting device into development mode...")
-                        self.serial_manager.send(msp.ExitMessage())
+                        # Check why the main loop exited and inform the device accordingly
+                        if self.exit_flag == ExitFlag.DEV_MODE:
+                            log.info("Putting device into development mode...")
+                            self.serial_manager.send(msp.ExitMessage())
+                        else:
+                            log.info("Sending device restart...")
+                            self.serial_manager.send(msp.DisconnectMessage())
+
+                except SerialException: # Catch all types of serial exception including write timeout
+
+                    if connect_success:
+                        # If we were connected i.e. unexpected disconnect occurred
+                        # This is probably due to a device-side error or physical disconnect
+                        # In the case of a physical disconnect, write AND read both fail (and which one it
+                        # is will depend on where the program was at that point)
+                        # In the case of device error, only the write will fail (with a timeout error)
+                        log.info(f"Device disconnected unexpectedly; reconnecting in {RECONNECT_DELAY} seconds")
                     else:
-                        log.info("Sending device restart...")
-                        self.serial_manager.send(msp.DisconnectMessage())
+                        # If we were unable to connect in the first place
+                        log.info(f"Failed to connect to device; retrying in {RECONNECT_DELAY} seconds")
+                        
+                    time.sleep(RECONNECT_DELAY) # Don't delay reconnection if disconnect was intentional
 
-            except SerialException: # Catch all types of serial exception including write timeout
-
-                if connect_success:
-                    # If we were connected i.e. unexpected disconnect occurred
-                    # This is probably due to a device-side error or physical disconnect
-                    # In the case of a physical disconnect, write AND read both fail (and which one it
-                    # is will depend on where the program was at that point)
-                    # In the case of device error, only the write will fail (with a timeout error)
-                    log.info(f"Device disconnected unexpectedly; reconnecting in {RECONNECT_DELAY} seconds")
-                else:
-                    # If we were unable to connect in the first place
-                    log.info(f"Failed to connect to device; retrying in {RECONNECT_DELAY} seconds")
-                    
-                time.sleep(RECONNECT_DELAY) # Don't delay reconnection if disconnect was intentional
-
-            # Post disconnect event unless we weren't connected in the first place
-            if connect_success: self._post_event(Event.DEVICE_DISCONNECT)
+                # Post disconnect event unless we weren't connected in the first place
+                if connect_success: self._post_event(Event.DEVICE_DISCONNECT)
 
         ### Program exit sequence ###
-
-        # TODO: Join spotify hooks thread
 
         log.debug("Host controller exit (exit flag: %s)", self.exit_flag)
         log.info("*** Stopping volume knob host process ***")
