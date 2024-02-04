@@ -33,11 +33,23 @@ class MediaManager:
         Initialises a new instance of the media manager.
         """
         log.info("Initialising media manager")
+        self.audio_device_id = "" # Audio device UUID string, used to check for device changes
+        self._update_audio_device() # Init system volume access with pycaw
 
-        # Init system volume access with pycaw
-        devices = AudioUtilities.GetSpeakers()
-        interface = devices.Activate(IAudioEndpointVolume._iid_, CLSCTX_ALL, None)
-        self.system_volume = cast(interface, POINTER(IAudioEndpointVolume))
+    
+    def _update_audio_device(self):
+        """
+        [Internal] Checks for changes to the audio output device and updates the connection if necessary.
+        """
+        t = time.perf_counter()
+        device = AudioUtilities.GetSpeakers()
+        id = device.GetId()
+        if id != self.audio_device_id: # If audio output device changed
+            self.audio_device_id = id # Store the new device UUID
+            interface = device.Activate(IAudioEndpointVolume._iid_, CLSCTX_ALL, None)
+            self.system_volume = cast(interface, POINTER(IAudioEndpointVolume))
+            log.log(TRACE, f"Audio device interface retrieval took {time.perf_counter() - t:.3f}s")
+            log.info("Audio output device updated")
 
 
     def get_volume(self, suppress_log = False) -> float:
@@ -45,6 +57,7 @@ class MediaManager:
         Returns the system volume, expressed as a fraction between 0 (muted) and 1 (max volume)
         """
         if not suppress_log: log.log(TRACE, "Attempting to get system volume")
+        self._update_audio_device()
         return self.system_volume.GetMasterVolumeLevelScalar() # type: ignore
 
 
@@ -54,6 +67,7 @@ class MediaManager:
         """
         log.debug("Attempting to set volume to %.2f", volume)
         if volume < 0 or volume > 1: raise ValueError(f"Invalid volume level: {volume}")
+        self._update_audio_device()
         self.system_volume.SetMasterVolumeLevelScalar(volume, None) # type: ignore
 
 
