@@ -71,7 +71,7 @@ class SpotifyHooks():
             
             t = time.perf_counter()
             self.window = self.app32.top_window().wrapper_object()
-            log.debug(f"Window wrapper retrieval took {time.perf_counter() - t:.3f}s")
+            log.log(TRACE, f"Window wrapper retrieval took {time.perf_counter() - t:.3f}s")
 
             log.info("Spotify connection successful")
             break
@@ -121,7 +121,7 @@ class SpotifyHooks():
         try:
             t = time.perf_counter()
             self.like_btn = self.like_btn.wrapper_object() # <class 'pywinauto.controls.uia_controls.ButtonWrapper'>
-            log.debug(f"Like btn wrapper retrieval took {time.perf_counter() - t:.3f}s")
+            log.log(TRACE, f"Like btn wrapper retrieval took {time.perf_counter() - t:.3f}s")
         except (pywinauto.MatchError, pywinauto.ElementNotFoundError) as e:
             log.warning("Unable to locate like button in Spotify window; has the UI been updated?\n%s", e)
             return
