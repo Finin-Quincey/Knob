@@ -53,7 +53,7 @@ def init_logger():
 
     log.basicConfig(format = "%(asctime)s [%(levelname)s] %(message)s",
                     datefmt = "%d-%m-%Y %I:%M:%S %p",
-                    level = log.DEBUG,
+                    level = TRACE,
                     handlers = [console_log_handler, primary_log_handler, debug_log_handler])
 
     log.addLevelName(TRACE, 'TRACE') # TRACE logging level for repetitive messages

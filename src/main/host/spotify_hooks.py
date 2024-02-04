@@ -40,6 +40,8 @@ class SpotifyHooks():
         pywinauto.warnings.simplefilter("ignore", category = UserWarning) # Shut up and do your job, pywinauto
 
         log.info("Attempting to connect to Spotify")
+        
+        t = time.perf_counter()
 
         # Get a list of running processes, as tuples of the form (pid, executable path, command line)
         for pid, exe_path, _ in pywinauto.application._process_get_modules_wmi():
@@ -58,6 +60,7 @@ class SpotifyHooks():
             # elements should be empty for background processes, so this should filter out everything except the UI
             if not elements: continue
 
+            log.log(TRACE, f"Spotify window identification took {time.perf_counter() - t:.3f}s")
             log.debug("Found Spotify window (process ID %d)", pid)
 
             # Actually try to connect to the Spotify application
