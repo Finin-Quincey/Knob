@@ -40,11 +40,11 @@ class MediaManager:
         self.system_volume = cast(interface, POINTER(IAudioEndpointVolume))
 
 
-    def get_volume(self) -> float:
+    def get_volume(self, suppress_log = False) -> float:
         """
         Returns the system volume, expressed as a fraction between 0 (muted) and 1 (max volume)
         """
-        log.log(TRACE, "Attempting to get system volume")
+        if not suppress_log: log.log(TRACE, "Attempting to get system volume")
         return self.system_volume.GetMasterVolumeLevelScalar() # type: ignore
 
 
