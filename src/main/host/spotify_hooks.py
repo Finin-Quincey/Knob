@@ -15,7 +15,7 @@ import threading
 SPOTIFY_EXE_NAME = "Spotify.exe"
 ESCAPE_KEY = "{ESC}"
 LIKE_KEYBOARD_SHORTCUT = "%+b"
-UPDATE_INTERVAL = 1
+UPDATE_INTERVAL = 5
 
 
 class SpotifyHooks():
@@ -110,22 +110,24 @@ class SpotifyHooks():
             log.log(TRACE, f"win32 connection took {time.perf_counter() - t:.3f}s")
             
             t = time.perf_counter()
-            self.window = self.app32.top_window().wrapper_object()
+            self.window_spec = self.app32.top_window() # Store so we can check if window exists later without waiting for a timeout
+            self.window = self.window_spec.wrapper_object()
             log.log(TRACE, f"Window wrapper retrieval took {time.perf_counter() - t:.3f}s")
 
             log.info("Spotify connection successful")
-            break
+            return
+        
+        log.info("Unable to connect to Spotify")
 
 
     def _check_spotify_connection(self) -> bool:
         """
-        Checks that the spotify connection is still valid.
+        Checks that the Spotify connection is still valid.
         """
-        if not isinstance(self.window, pywinauto.controls.hwndwrapper.HwndWrapper): return False
-        if self.app and self.window: return True # For some reason window is no longer a WindowWrapper, but a DialogWrapper... not sure why
-
-        log.info("Unable to connect to Spotify")
-        return False
+        return (self.app and self.app32         # If the app variables are None, we never connected in the first place
+            and self.app32.is_process_running() # If this returns False, Spotify was running but has been closed (no need to check uia as well, both are the same process)
+            and self.window_spec.exists()       # If this returns False, Spotify is minimised to the tray so we can't interact with it
+        )
 
 
     def _locate_like_btn(self):
