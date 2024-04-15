@@ -16,8 +16,12 @@ from constants import *
 
 ### Globals ###
 
-img_connected = Image.open("src/main/systray_icon.png")
-img_disconnected = Image.open("src/main/systray_icon_disconnected.png")
+# Get the actual directory containing this file (which may change depending on PyInstaller configs)
+# See https://pyinstaller.org/en/stable/runtime-information.html#using-file
+current_dir = os.path.dirname(__file__)
+
+img_connected = Image.open(os.path.join(current_dir, "systray_icon.png"))
+img_disconnected = Image.open(os.path.join(current_dir, "systray_icon_disconnected.png"))
 
 controller = HostController()
 
