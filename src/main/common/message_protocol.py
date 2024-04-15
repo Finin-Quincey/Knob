@@ -17,15 +17,6 @@ MESSAGE_REGISTRY = [] # List of message types, index is the message ID
 
 ### Classes ###
 
-# It may seem a bit overkill to go full object-oriented for this. A potential alternative is to use a proxy pattern with
-# network handler classes for both device and host that inherit from a common base class, with functions for each type
-# of message. This achieves the same goal of providing a contract for eactly what data goes into each type of message.
-# However, the issue there is that we don't necessarily know the type of an incoming message (sometimes it can be inferred
-# from context but on the host end especially, it could be anything). This means we would have to have a single centralised
-# decode() function anyway, and then a switch statement for each kind of message (potentially broken out into other functions).
-# This would then have to return a tuple of values including the ID so that the caller can then determine the type of message
-# ... which kind of defeats the point
-
 class Message:
 
     def __init__(self, size = 0):
@@ -75,6 +66,62 @@ class Message:
         order as from_bytes() (this includes calls to super())
         """
         pass
+
+
+class IDMessage(Message):
+    """
+    Message sent by the device to identify itself to the host program during device discovery.
+    
+    Direction: Device -> Host
+    
+    Additional data:
+    - id (1 byte, representing the device type identifier unique to volume knob devices)
+    """
+
+    def __init__(self, id = 0):
+        super().__init__(size = 1)
+        self.id = id
+
+    def to_bytes(self, data: list) -> list:
+        data.append(self.id)  # type: ignore
+        return data
+
+    def from_bytes(self, data: list):
+        self.id = data.pop(0)
+
+
+class LogMessage(Message):
+    """
+    Message sent to log a device-side event to the host side output stream(s).
+    
+    Direction: Device -> Host
+    
+    Additional data:
+    - level (1 byte, representing the integer logging level as defined in the logging module)
+    - msg (62 bytes, representing the UTF-8 encoded log message)
+
+    ---
+    Due to the fixed-length message system, this message must always contain the same number of bytes.
+    The input string will be truncated or padded with spaces to make it exactly 62 bytes long. Trailing
+    spaces should be removed on the receiving end before logging the message.
+    """
+    def __init__(self, level = 0, msg = ""):
+        super().__init__(size = 63)
+        self.level = level
+        self.msg = msg
+
+    def to_bytes(self, data: list) -> list:
+        data.append(self.level)
+        # Seems a bit silly to go from string to bytes to ints and then back to bytes but we've set things up
+        # that way now! Maybe in future we'll change it so these functions handle raw bytes objects...
+        chars = self.msg.encode("utf-8")
+        for i in range(62):
+            data.append(int(chars[i]) if i < len(chars) else SPACE_ASCII)
+        return data
+
+    def from_bytes(self, data: list):
+        self.level = data.pop(0)
+        self.msg = bytes(data).decode("utf-8").rstrip() # data should only contain the msg string now
 
 
 class VolumeRequestMessage(Message):
@@ -223,7 +270,7 @@ class SpectrumMessage(Message):
 
 class LikeMessage(Message):
     """
-    Message sent like/unlike the current song.
+    Message sent to like/unlike the current song.
     
     Direction: Device -> Host
     
@@ -255,6 +302,30 @@ class LikeStatusMessage(Message):
         self.liked = bool(data.pop(0))
 
 
+class DisconnectMessage(Message):
+    """
+    Message sent on host program exit or restart to return the device to its startup state.
+    
+    Direction: Host -> Device
+    
+    Additional data: None
+    """
+    def __init__(self):
+        super().__init__() # No additional data required
+
+
+class ExitMessage(Message):
+    """
+    Message sent on activation of development mode to make the device exit to the REPL.
+    
+    Direction: Host -> Device
+    
+    Additional data: None
+    """
+    def __init__(self):
+        super().__init__() # No additional data required
+
+
 ### Functions ###
 
 def register(message_type: type[Message]):
@@ -263,21 +334,11 @@ def register(message_type: type[Message]):
     """
     #if not issubclass(message_class, Message): raise TypeError("Cannot register message type; must inherit from Message")
     MESSAGE_REGISTRY.append(message_type)
-
-# Two different approaches to determining when to stop reading:
-# 1. Send a newline char (\n) at the end of each message and use readline() - neat but inefficient
-#    + Simple to implement
-#    + No need to know the size of messages beforehand
-#    - Adds 1 byte to every single message
-# 2. Define the length of each message at compile-time, then look that up once message type has been determined and
-#    read the rest of the message based on that - messier but efficient
-#    + No additional bytes need to be sent
-#    - More complex to implement, requires some back-and-forth between serial managers and message_protocol
-# I've gone for option 2 for now, but a potential compromise is to supply a read function as an argument to decode()
+    
 
 def msg_from_id(id_byte: bytes) -> Message:
     """
-    Construct a blank message from its ID, ready to receive bytes of data.
+    Constructs a blank message from its ID, ready to receive bytes of data.
     """
     id = int(id_byte[0])
     if id >= len(MESSAGE_REGISTRY): raise IndexError("Invalid message ID!")
@@ -286,6 +347,8 @@ def msg_from_id(id_byte: bytes) -> Message:
 
 
 # Message registry
+register(IDMessage)
+register(LogMessage)
 register(VolumeRequestMessage)
 register(VolumeMessage)
 register(TogglePlaybackMessage)
@@ -295,3 +358,5 @@ register(VUMessage)
 register(SpectrumMessage)
 register(LikeMessage)
 register(LikeStatusMessage)
+register(DisconnectMessage)
+register(ExitMessage)

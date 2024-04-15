@@ -1,7 +1,13 @@
+ctrl_ids.txt
+
 # IDE
 .vscode/
 pico-go.json
 .ampy
+
+# Runtime
+logs
+serial.cache
 
 # OS
 Thumbs.db

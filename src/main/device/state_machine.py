@@ -15,6 +15,7 @@ import utime
 
 from constants import *
 
+import device_logger as log
 import device_controller as device
 import message_protocol as msp
 
@@ -56,7 +57,7 @@ class StartupState(State):
         # Send regular device ID messages
         if utime.ticks_ms() - self.last_broadcast_time > BROADCAST_INTERVAL:
             self.last_broadcast_time = utime.ticks_ms()
-            device.serial_manager.send_id()
+            device.serial_manager.send(msp.IDMessage(DEVICE_TYPE_ID))
         
         rotation = int(PIXEL_COUNT * utime.ticks_ms() / STARTUP_ANIMATION_PERIOD) % PIXEL_COUNT
 
@@ -243,6 +244,7 @@ def set_state(new_state):
     """
     global _current_state
     if new_state == _current_state: return
+    log.debug(f"Entering state: {type(new_state).__name__}")
     _current_state = new_state
 
 

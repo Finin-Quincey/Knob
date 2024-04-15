@@ -65,7 +65,7 @@ if __name__ == '__main__':
     # #print(volume.GetVolumeRange()) # Returns: "pfMin", "pfMax", "pfIncr"
     # volume.SetMasterVolumeLevelScalar(1, None)
 
-    # while(True):
+    # while True:
     #     time.sleep(2)
     #     volume.SetMasterVolumeLevelScalar(0.5, None)
     #     time.sleep(2)

@@ -43,29 +43,37 @@ class SerialManager():
         """
         Called from the main program loop to update the serial manager.
         """
-        while True: # Keep reading messages until there are none waiting
+        while self.bytes_waiting(): # Keep reading messages until there are none waiting
+            msg, raw = self.read_next_msg()
+            self.handle(msg, raw)
 
-            id = self.read(1) # Try to read a byte from the input
-            if not id: return # If there are no bytes waiting, we're done
-            b = [id]
+        
+    def read_next_msg(self) -> tuple[msp.Message, bytes]:
+        """
+        Reads a single message from the input buffer and returns the resulting message object.
+        
+        #### Returns
+        - `msg`: The resulting `Message` object.
+        - `raw`: The raw `bytes` object, for logging purposes.
+        """
+        id = self.read(1) # Read the first byte from the input - this should be the message ID
+        raw = id # Need to set this here in case the message has no additional data
 
-            # Reconstruct message object
-            msg = msp.msg_from_id(id)
+        # Reconstruct message object
+        msg = msp.msg_from_id(id)
 
-            # Decode additional message data
-            if msg.size > 0: # Some messages contain no additional data
-                data_bytes = self.read(msg.size)
-                if not data_bytes: raise_msg_error(msg, 0)
-                if len(data_bytes) < msg.size: raise_msg_error(msg, len(data_bytes))
-                msg.decode(data_bytes)
-                # b = [id, *data_bytes] # Micropython doesn't support this syntax (yet)
-                b = list(data_bytes)
-                b.insert(0, id)
+        # Decode additional message data
+        if msg.size > 0: # Some messages contain no additional data
+            data_bytes = self.read(msg.size)
+            if not data_bytes: raise_msg_error(msg, 0)
+            if len(data_bytes) < msg.size: raise_msg_error(msg, len(data_bytes))
+            msg.decode(data_bytes)
+            raw += data_bytes
 
-            self.handle(msg, b)
+        return msg, raw
 
     
-    def handle(self, msg, b):
+    def handle(self, msg: msp.Message, raw: bytes):
         """
         Call the handler (if it exists) for this type of message to do whatever it needs to do
         Subclasses may extend functionality with e.g. logging
@@ -78,16 +86,46 @@ class SerialManager():
 
     def send(self, msg: msp.Message):
         """
-        Sends the given message via the serial connection.
+        Sends the given message over the USB serial connection.
+        
+        #### Parameters
+        ##### Required
+        - `msg`: The `Message` object to send
+        
+        ---
         Subclasses should implement this with the relevant code for their end of the connection.
         """
         raise NotImplementedError("Attempted to call send() for the base SerialManager class")
 
         
-    def read(self, n: int):
+    def read(self, n: int) -> bytes:
         """
-        Attempts to read and return n bytes from the serial input buffer. Returns None if no bytes are available.
+        Reads and returns n bytes from the serial input buffer.
+        
+        #### Parameters
+        ##### Required
+        - `n`: The number of bytes to read
+
+        #### Returns
+        A `bytes` object containing the values read from the input buffer.
+        
+        ---
+        This method is only called after checking that there are bytes waiting; as such the read
+        operation may be blocking.
+
         Subclasses should implement this with the relevant code for their end of the connection.
-        Read implementations must not block if no bytes are available.
         """
         raise NotImplementedError("Attempted to call read() for the base SerialManager class")
+    
+
+    def bytes_waiting(self) -> bool:
+        """
+        Checks whether there are bytes waiting in the serial input buffer.
+        
+        #### Returns
+        `True` if there are bytes waiting, `False` if the buffer is empty.
+
+        ---
+        Subclasses should implement this with the relevant code for their end of the connection.
+        """
+        raise NotImplementedError("Attempted to call bytes_waiting() for the base SerialManager class")

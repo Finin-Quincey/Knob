@@ -5,17 +5,22 @@ File containing various global constants used by the host software, device softw
 """
 
 # Serial comms
+CACHE_FILENAME = "serial.cache"     # Name of the file containing cached connection info
 BAUD_RATE = 115200                  # Baud rate for the serial communication
 COM_PORT = "auto"                   # COM port that the device is connected to, or "auto" to identify automatically
 USB_VID = 11914                     # USB vendor ID for Raspberry Pi
 USB_PID = 5                         # USB product ID for Pico running MicroPython firmware
-DEVICE_ID = 100                     # Unique device identifier to distinguish it from other Picos
-BROADCAST_INTERVAL = 1000           # Time between sending device ID messages, in ms
-CONNECTION_TIMEOUT = 5              # Serial connection timeout, in seconds
+DEVICE_TYPE_ID = 100                # Unique device identifier for volume knob devices to distinguish them from other Picos
+BROADCAST_INTERVAL = 1000           # Time between sending device ID messages, in ms (must be less than connection timeout)
+CONNECTION_TIMEOUT = 2              # Serial connection timeout, in seconds
 RECONNECT_DELAY = 5                 # Time between connection attempts, in seconds
+SPACE_ASCII = int(" ".encode("utf-8")[0])
 
 # Logging
 TRACE = 5
+LOGS_DIRECTORY = "logs"
+PRIMARY_LOG_FILENAME = "latest.log"
+DEBUG_LOG_FILENAME = "debug.log"
 
 # Pin number assignments for the Raspberry Pi Pico
 ONBOARD_LED_PIN = 25                # Pin number used for the onboard LED on the Raspberry Pi Pico
