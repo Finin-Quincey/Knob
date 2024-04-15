@@ -1,5 +1,6 @@
 import pywinauto
 import time
+import os
 import win32gui, win32process
 
 # See https://stackoverflow.com/questions/48723263/cannot-find-exe-with-pywinautos-find-windowtitle-program-exe
@@ -17,7 +18,16 @@ import win32gui, win32process
 
 # print(w.window_text())
 
-# SPOTIFY_PATH = r"C:\Users\qncyf\AppData\Roaming\Spotify\Spotify.exe"
+SPOTIFY_PATH = os.path.join(os.getenv('APPDATA'), "Spotify", "Spotify.exe")
+
+desktop = pywinauto.Desktop()
+
+window_spec = desktop.window(path = SPOTIFY_PATH)
+
+while True:
+    window_spec.wait("exists")
+    print("Found Spotify")
+    print(window_spec.window_text())
 
 # Right... lots to unpack here so bear with me
 
